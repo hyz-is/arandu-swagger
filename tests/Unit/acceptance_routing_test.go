@@ -201,6 +201,97 @@ func TestAcceptanceUnnamedRoutesDoNotInventOperationIdentifiers(t *testing.T) {
 	}
 }
 
+func TestAcceptanceUndocumentedMatchRoutesHaveMethodQualifiedOperationIDs(t *testing.T) {
+	t.Parallel()
+
+	router := routing.NewRouter()
+	router.Match(
+		[]string{http.MethodPut, http.MethodPatch},
+		"/posts/{id}",
+		http.HandlerFunc(func(http.ResponseWriter, *http.Request) {}),
+	).Name("posts.update")
+	config := generationConfig()
+	config.IncludeUndocumented = true
+
+	document, err := swagger.Generate(router.Routes(), swagger.NewRegistry(), config)
+	if err != nil {
+		t.Fatalf("Generate() error = %v", err)
+	}
+	item := document.Paths["/posts/{id}"]
+	if item == nil || item.Put == nil || item.Patch == nil {
+		t.Fatalf("undocumented Match path item = %#v, want PUT and PATCH", item)
+	}
+	if item.Put.OperationID != "posts.update.put" || item.Patch.OperationID != "posts.update.patch" {
+		t.Fatalf("operation IDs = %q, %q, want method-qualified IDs", item.Put.OperationID, item.Patch.OperationID)
+	}
+}
+
+func TestAcceptanceUndocumentedMatchLinkageDoesNotCrossRouteNames(t *testing.T) {
+	t.Parallel()
+
+	matched := routing.NewRouter()
+	matched.Match(
+		[]string{http.MethodPut, http.MethodPatch},
+		"/posts/{id}",
+		http.HandlerFunc(func(http.ResponseWriter, *http.Request) {}),
+	).Name("posts.update").Domain("matched.example.test")
+	independent := routing.NewRouter()
+	independent.Put(
+		"/posts/{id}",
+		http.HandlerFunc(func(http.ResponseWriter, *http.Request) {}),
+	).Name("posts.replace").Domain("independent.example.test")
+	routes := append([]*routing.Route(nil), matched.Routes()...)
+	routes = append(routes, independent.Routes()...)
+	config := generationConfig()
+	config.IncludeUndocumented = true
+	config.Filter.IncludeDomains = []string{"independent.example.test"}
+
+	document, err := swagger.Generate(routes, swagger.NewRegistry(), config)
+	if err != nil {
+		t.Fatalf("Generate() error = %v", err)
+	}
+	item := document.Paths["/posts/{id}"]
+	if item == nil || item.Put == nil {
+		t.Fatalf("independent path item = %#v, want PUT", item)
+	}
+	if item.Put.OperationID != "posts.replace" {
+		t.Fatalf("operationId = %q, want single-method route name", item.Put.OperationID)
+	}
+}
+
+func TestAcceptanceUndocumentedMatchLinkageDoesNotCrossDomains(t *testing.T) {
+	t.Parallel()
+
+	matched := routing.NewRouter()
+	matched.Match(
+		[]string{http.MethodPut, http.MethodPatch},
+		"/posts/{id}",
+		http.HandlerFunc(func(http.ResponseWriter, *http.Request) {}),
+	).Name("posts.update").Domain("matched.example.test")
+	sameName := routing.NewRouter()
+	sameName.Put(
+		"/posts/{id}",
+		http.HandlerFunc(func(http.ResponseWriter, *http.Request) {}),
+	).Name("posts.update").Domain("independent.example.test")
+	routes := append([]*routing.Route(nil), matched.Routes()...)
+	routes = append(routes, sameName.Routes()...)
+	config := generationConfig()
+	config.IncludeUndocumented = true
+	config.Filter.IncludeDomains = []string{"independent.example.test"}
+
+	document, err := swagger.Generate(routes, swagger.NewRegistry(), config)
+	if err != nil {
+		t.Fatalf("Generate() error = %v", err)
+	}
+	item := document.Paths["/posts/{id}"]
+	if item == nil || item.Put == nil {
+		t.Fatalf("same-name other-domain path item = %#v, want PUT", item)
+	}
+	if item.Put.OperationID != "posts.update" {
+		t.Fatalf("operationId = %q, want the unqualified name of a single-method route", item.Put.OperationID)
+	}
+}
+
 func TestAcceptanceOneExplicitOperationIDCannotDescribeMultipleMethods(t *testing.T) {
 	t.Parallel()
 

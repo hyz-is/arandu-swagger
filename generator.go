@@ -62,6 +62,7 @@ func Generate(routes []*fhttp.Route, registry *Registry, config Config) (*Docume
 
 	bindings, bindingIssues := bindDocumentedRoutes(routes, snapshot.routes)
 	issues = append(issues, bindingIssues...)
+	linkedMethodCounts := linkedRouteMethodCounts(routes)
 	operationIDs := make(map[string]string)
 	methodPaths := make(map[string]string)
 
@@ -70,6 +71,9 @@ func Generate(routes []*fhttp.Route, registry *Registry, config Config) (*Docume
 			continue
 		}
 		binding, documented := bindings[route]
+		if !documented {
+			binding.methodCount = linkedMethodCounts[route]
+		}
 		if documented && binding.draft.hidden {
 			continue
 		}
@@ -154,6 +158,54 @@ type documentedBinding struct {
 	draft       operationDraft
 	source      *fhttp.Route
 	methodCount int
+}
+
+// linkedRouteMethodCounts reports how many sibling routes each undocumented
+// route shares with a single Match registration. Hesape expands one Match call
+// into one route per method, so the count is what tells operationID that a
+// route name describes more than one operation and must be qualified.
+func linkedRouteMethodCounts(routes []*fhttp.Route) map[*fhttp.Route]int {
+	byMethodPath := make(map[string][]*fhttp.Route, len(routes))
+	for _, route := range routes {
+		if route == nil {
+			continue
+		}
+		key := routeSiblingKey(route, route.Method)
+		byMethodPath[key] = append(byMethodPath[key], route)
+	}
+
+	counts := make(map[*fhttp.Route]int)
+	for _, source := range routes {
+		if source == nil {
+			continue
+		}
+		sourceName := source.GetName()
+		if sourceName == "" {
+			continue
+		}
+		methods := source.Methods()
+		if len(methods) < 2 {
+			continue
+		}
+		for _, method := range methods {
+			for _, candidate := range byMethodPath[routeSiblingKey(source, method)] {
+				if candidate.GetName() != sourceName {
+					continue
+				}
+				if counts[candidate] < len(methods) {
+					counts[candidate] = len(methods)
+				}
+			}
+		}
+	}
+	return counts
+}
+
+// routeSiblingKey identifies the one concrete operation a route serves. Domain
+// participates because two hosts may expose the same method, path, and route
+// name without describing the same operation.
+func routeSiblingKey(route *fhttp.Route, method string) string {
+	return strings.ToUpper(method) + "\x00" + route.URI() + "\x00" + route.GetDomain()
 }
 
 func bindDocumentedRoutes(routes []*fhttp.Route, documented map[*fhttp.Route]operationDraft) (map[*fhttp.Route]documentedBinding, []error) {
@@ -336,7 +388,9 @@ func buildOperation(route *fhttp.Route, method string, pathNames []string, bindi
 				"default": {Description: "Undocumented response."},
 			},
 		}
-		binding.methodCount = 1
+		if binding.methodCount == 0 {
+			binding.methodCount = 1
+		}
 	}
 	operation := &Operation{
 		Tags:         append([]string(nil), draft.tags...),
