@@ -1,0 +1,47 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-go@v7
+        with:
+          # Not go-version-file: go.mod declares the MINIMUM language version,
+          # and setup-go would install exactly that -- a patch release whose
+          # standard library carries fixed vulnerabilities. "stable" is the
+          # version people actually run, which is what CI should test against.
+          go-version: stable
+
+      - name: gofmt
+        # Two filters, and neither is preference. gofmt is the only tool in the
+        # chain that ignores build tags, so it reads files the compiler
+        # deliberately excludes; testdata/ holds fixtures that are invalid on
+        # purpose. `go build`, `go vet` and `go test` skip both on their own.
+        run: |
+          unformatted=$(find . -name '*.go' -not -path '*/testdata/*' \
+                          -not -name '*.kyse.go' -exec gofmt -l {} +)
+          if [ -n "$unformatted" ]; then
+            echo "not gofmt'd:"
+            echo "$unformatted"
+            exit 1
+          fi
+
+      - name: build
+        run: go build ./...
+
+      - name: vet
+        run: go vet ./...
+
+      - name: test
+        run: go test -race ./...
+

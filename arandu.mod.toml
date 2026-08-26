@@ -1,0 +1,20 @@
+# What this package declares about itself.
+#
+# The declaration is capability, not intent, and `aru doctor` compares it with
+# what the code imports and calls. A package that says it makes no outbound
+# calls and then holds an HTTP client is rejected, which is what makes the
+# four lines below worth reading before installing anything.
+
+name = "arandu-io/swagger"
+framework = ">= 0.35"
+profiles = ["conventional", "performance"]
+
+[permissions]
+# It answers requests from embedded bytes. Nothing leaves the process.
+network = false
+# Swagger UI assets are embedded at build time; runtime does not read or write files.
+filesystem = false
+# It runs no other program.
+exec = false
+# Documentation is derived from the route table and owns no database schema.
+migrations = false
