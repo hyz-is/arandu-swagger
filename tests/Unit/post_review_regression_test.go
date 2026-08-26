@@ -8,7 +8,7 @@ import (
 
 	"github.com/arandu-io/hesape/jsonschema"
 	"github.com/arandu-io/hesape/routing"
-	"github.com/arandu-io/swagger"
+	swagger "github.com/hyz-is/arandu-swagger"
 )
 
 func TestSchemaFromRejectsInvalidNativeSchemaKeywords(t *testing.T) {

@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/arandu-io/swagger/internal/ui"
+	"github.com/hyz-is/arandu-swagger/internal/ui"
 )
 
 func TestSwaggerUIAssetsAreEmbeddedWithVersionedPathsAndMIMETypes(t *testing.T) {

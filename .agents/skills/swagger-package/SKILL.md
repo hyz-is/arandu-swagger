@@ -1,6 +1,6 @@
 ---
 name: swagger-package
-description: Install, wire, configure, and use github.com/arandu-io/swagger in an Arandu application. Use for package installation, bootstrap wiring, documenting routes, schemas, responses, security, filters, UI/spec endpoints, static generation, or troubleshooting missing documentation.
+description: Install, wire, configure, and use github.com/hyz-is/arandu-swagger in an Arandu application. Use for package installation, bootstrap wiring, documenting routes, schemas, responses, security, filters, UI/spec endpoints, static generation, or troubleshooting missing documentation.
 license: MIT
 ---
 
@@ -13,7 +13,7 @@ policy, service provider, container, or global registry.
 ## Install and wire
 
 ```sh
-go get github.com/arandu-io/swagger
+go get github.com/hyz-is/arandu-swagger
 ```
 
 Construct one instance in `bootstrap/app.go`, pass its small `Documenter`

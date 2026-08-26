@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/arandu-io/swagger"
+	swagger "github.com/hyz-is/arandu-swagger"
 )
 
 func TestUIBootstrapAllowsUnsafeInlineOnlyForSwaggerStyleAttributes(t *testing.T) {

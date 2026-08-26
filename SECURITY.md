@@ -10,7 +10,7 @@ rather than by moving an existing tag.
 
 Report vulnerabilities privately through GitHub Security Advisories:
 
-<https://github.com/arandu-io/swagger/security/advisories/new>
+<https://github.com/hyz-is/arandu-swagger/security/advisories/new>
 
 Do not open a public issue or pull request. Include the affected version,
 configuration, route/documentation declaration, request, and the smallest

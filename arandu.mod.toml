@@ -5,7 +5,7 @@
 # calls and then holds an HTTP client is rejected, which is what makes the
 # four lines below worth reading before installing anything.
 
-name = "arandu-io/swagger"
+name = "hyz-is/arandu-swagger"
 framework = ">= 0.35"
 profiles = ["conventional", "performance"]
 

@@ -8,7 +8,7 @@ import (
 	"github.com/arandu-io/framework/foundation"
 	fhttp "github.com/arandu-io/framework/http"
 	"github.com/arandu-io/hesape/jsonschema"
-	"github.com/arandu-io/swagger"
+	swagger "github.com/hyz-is/arandu-swagger"
 )
 
 // UsersModule is an application module that depends only on the ability to

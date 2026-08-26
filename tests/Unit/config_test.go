@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	swagger "github.com/arandu-io/swagger"
+	swagger "github.com/hyz-is/arandu-swagger"
 )
 
 func TestDisabledDocumentationAcceptsTheZeroConfiguration(t *testing.T) {

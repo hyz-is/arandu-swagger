@@ -19,7 +19,7 @@ The package is intentionally an Arandu module rather than a second framework:
 ## Install
 
 ```bash
-go get github.com/arandu-io/swagger
+go get github.com/hyz-is/arandu-swagger
 ```
 
 No migration or asset build follows installation.
@@ -253,4 +253,5 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) before changing public behavior.
 
 ## License
 
-Arandu Swagger is MIT licensed. See [LICENSE.md](LICENSE.md). Copyright Arandu.
+Arandu Swagger is MIT licensed. See [LICENSE.md](LICENSE.md).
+Copyright (c) 2026 HYZIS - SERVICOS DIGITAIS LTDA - EPP.

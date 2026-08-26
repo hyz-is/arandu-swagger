@@ -9,13 +9,13 @@ types provided by Hesape 0.12.
 Install it with the Go toolchain:
 
 ```bash
-go get github.com/arandu-io/swagger
+go get github.com/hyz-is/arandu-swagger
 ```
 
 Import the package where the application is composed:
 
 ```go
-import "github.com/arandu-io/swagger"
+import swagger "github.com/hyz-is/arandu-swagger"
 ```
 
 ## There is no install-time work

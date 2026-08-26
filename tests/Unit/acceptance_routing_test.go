@@ -8,7 +8,7 @@ import (
 
 	fhttp "github.com/arandu-io/framework/http"
 	"github.com/arandu-io/hesape/routing"
-	"github.com/arandu-io/swagger"
+	swagger "github.com/hyz-is/arandu-swagger"
 )
 
 func TestAcceptanceHesapePathConstraintsArePreservedExactly(t *testing.T) {

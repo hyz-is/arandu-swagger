@@ -1,6 +1,6 @@
 # Working on Arandu Swagger
 
-This repository is the official `github.com/arandu-io/swagger` package. It
+This repository is the official `github.com/hyz-is/arandu-swagger` package. It
 derives an OpenAPI 3.1 document from the public Arandu route table, enriches it
 through an instance-owned registry, and optionally serves embedded Swagger UI
 assets. It is a library that an application registers explicitly in

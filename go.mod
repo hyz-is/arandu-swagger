@@ -1,4 +1,4 @@
-module github.com/arandu-io/swagger
+module github.com/hyz-is/arandu-swagger
 
 go 1.26
 

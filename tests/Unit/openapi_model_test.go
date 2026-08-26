@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/arandu-io/hesape/jsonschema"
-	"github.com/arandu-io/swagger"
+	swagger "github.com/hyz-is/arandu-swagger"
 )
 
 func TestTheOpenAPIModelRendersACompleteTypedDocument(t *testing.T) {

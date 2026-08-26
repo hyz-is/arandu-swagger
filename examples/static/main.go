@@ -8,7 +8,7 @@ import (
 	"os"
 
 	fhttp "github.com/arandu-io/framework/http"
-	"github.com/arandu-io/swagger"
+	swagger "github.com/hyz-is/arandu-swagger"
 )
 
 func main() {

@@ -13,7 +13,7 @@ import (
 
 	"github.com/arandu-io/framework/foundation"
 	fhttp "github.com/arandu-io/framework/http"
-	"github.com/arandu-io/swagger"
+	swagger "github.com/hyz-is/arandu-swagger"
 )
 
 func TestModuleImplementsOnlyItsIntendedFoundationContracts(t *testing.T) {

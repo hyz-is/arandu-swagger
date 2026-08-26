@@ -16,7 +16,7 @@ import (
 	"github.com/arandu-io/framework/foundation"
 	fhttp "github.com/arandu-io/framework/http"
 
-	"github.com/arandu-io/swagger/internal/ui"
+	"github.com/hyz-is/arandu-swagger/internal/ui"
 )
 
 const uiContentSecurityPolicy = "default-src 'none'; style-src 'self'; style-src-attr 'unsafe-inline'; script-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'"

@@ -23,10 +23,10 @@ before implementation. Source references use the form
 | `kyse` | Component and asset model | Kyse is a compiled Go component library, not a replacement runtime for Swagger UI. |
 | `joaju` | Embedded self-origin JavaScript client | Its asset handler is a useful local pattern; WebSockets are unnecessary for the first release. |
 
-The configured package targets `github.com/arandu-io/swagger` and depends only
-on the Arandu-owned `framework` and `hesape` modules. The compatibility floor is
-the pair of versions pinned in this repository's `go.mod:5-8`; implementation
-and tests must continue to compile against that floor.
+The configured package targets `github.com/hyz-is/arandu-swagger` and depends
+only on the Arandu-owned `framework` and `hesape` modules. The compatibility
+floor is the pair of versions pinned in this repository's `go.mod:5-8`;
+implementation and tests must continue to compile against that floor.
 
 ## Framework contracts
 

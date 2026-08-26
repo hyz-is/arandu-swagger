@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/arandu-io/hesape/routing"
-	"github.com/arandu-io/swagger"
+	swagger "github.com/hyz-is/arandu-swagger"
 )
 
 func TestAcceptanceSupportedSecuritySchemesPassGenerationValidation(t *testing.T) {
