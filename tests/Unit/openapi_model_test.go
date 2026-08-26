@@ -198,6 +198,68 @@ func TestSchemaFromTakesAnImmutableSnapshot(t *testing.T) {
 	}
 }
 
+func TestSchemaFromJSONPreservesACompleteImmutableSchemaObject(t *testing.T) {
+	t.Parallel()
+
+	encoded := []byte(`{
+		"type":"object",
+		"properties":{"id":{"type":"integer","format":"int64","maximum":9223372036854775807}},
+		"oneOf":[{"required":["id"]},{"required":["externalId"]}],
+		"allOf":[{"$ref":"#/components/schemas/Base"}]
+	}`)
+	schema, err := swagger.SchemaFromJSON(encoded)
+	if err != nil {
+		t.Fatalf("SchemaFromJSON() error = %v", err)
+	}
+	encoded[0] = '['
+
+	got, err := json.Marshal(schema)
+	if err != nil {
+		t.Fatalf("marshal imported schema: %v", err)
+	}
+	want := `{"type":"object","properties":{"id":{"type":"integer","format":"int64","maximum":9223372036854775807}},"oneOf":[{"required":["id"]},{"required":["externalId"]}],"allOf":[{"$ref":"#/components/schemas/Base"}]}`
+	if string(got) != want {
+		t.Fatalf("imported schema = %s, want %s", got, want)
+	}
+
+	copyOfJSON := schema.JSON()
+	copyOfJSON[0] = '['
+	again, err := json.Marshal(schema)
+	if err != nil {
+		t.Fatalf("marshal imported schema after copy mutation: %v", err)
+	}
+	if string(again) != want {
+		t.Fatalf("imported schema changed through JSON copy: got %s, want %s", again, want)
+	}
+}
+
+func TestSchemaFromJSONRejectsInvalidSchemaObjects(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		encoded string
+		want    string
+	}{
+		{name: "empty", encoded: "", want: "object"},
+		{name: "array root", encoded: `[]`, want: "object"},
+		{name: "null root", encoded: `null`, want: "object"},
+		{name: "duplicate key", encoded: `{"type":"string","type":"integer"}`, want: "duplicate"},
+		{name: "oneOf object", encoded: `{"oneOf":{}}`, want: "array"},
+		{name: "invalid oneOf member", encoded: `{"oneOf":[42]}`, want: "schema"},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			_, err := swagger.SchemaFromJSON([]byte(test.encoded))
+			if err == nil || !strings.Contains(err.Error(), test.want) {
+				t.Fatalf("SchemaFromJSON(%s) error = %v, want %q", test.encoded, err, test.want)
+			}
+		})
+	}
+}
+
 func TestSchemaFromTurnsInvalidNativeSchemasIntoErrors(t *testing.T) {
 	t.Parallel()
 

@@ -1080,8 +1080,68 @@ func validateSchemaReference(context string, schema Schema, components Component
 				return []error{fmt.Errorf("swagger: %s: %w", context, err)}
 			}
 		}
+		return nil
 	}
-	return nil
+	value, err := decodeSchemaValue(schema)
+	if err != nil {
+		return []error{fmt.Errorf("swagger: %s cannot be inspected: %w", context, err)}
+	}
+	return validateSchemaValueReferences(context, value, components.Schemas, "$")
+}
+
+func validateSchemaValueReferences(context string, value any, schemas map[string]Schema, location string) []error {
+	object, ok := value.(map[string]any)
+	if !ok {
+		return nil
+	}
+
+	var issues []error
+	if rawReference, exists := object["$ref"]; exists {
+		reference, ok := rawReference.(string)
+		if !ok {
+			issues = append(issues, fmt.Errorf("swagger: %s %s has a non-string $ref", context, location))
+		} else if err := validateURIReference(reference); err != nil {
+			issues = append(issues, fmt.Errorf("swagger: %s %s has invalid $ref %q: %w", context, location, reference, err))
+		} else if strings.HasPrefix(reference, "#/") {
+			if err := validateLocalSchemaReference(reference, schemas); err != nil {
+				issues = append(issues, fmt.Errorf("swagger: %s %s: %w", context, location, err))
+			}
+		}
+	}
+
+	for _, keyword := range singleSubschemaKeywords {
+		if child, exists := object[keyword]; exists {
+			issues = append(issues, validateSchemaValueReferences(context, child, schemas, location+"."+keyword)...)
+		}
+	}
+	for _, keyword := range arraySubschemaKeywords {
+		children, ok := object[keyword].([]any)
+		if !ok {
+			continue
+		}
+		for index, child := range children {
+			childLocation := fmt.Sprintf("%s.%s[%d]", location, keyword, index)
+			issues = append(issues, validateSchemaValueReferences(context, child, schemas, childLocation)...)
+		}
+	}
+	for _, keyword := range mapSubschemaKeywords {
+		children, ok := object[keyword].(map[string]any)
+		if !ok {
+			continue
+		}
+		for _, name := range sortedKeys(children) {
+			issues = append(issues, validateSchemaValueReferences(context, children[name], schemas, location+"."+keyword+"."+name)...)
+		}
+	}
+	if dependencies, ok := object["dependencies"].(map[string]any); ok {
+		for _, name := range sortedKeys(dependencies) {
+			if _, isPropertyList := dependencies[name].([]any); isPropertyList {
+				continue
+			}
+			issues = append(issues, validateSchemaValueReferences(context, dependencies[name], schemas, location+".dependencies."+name)...)
+		}
+	}
+	return issues
 }
 
 func validateLocalSchemaReference(reference string, schemas map[string]Schema) error {

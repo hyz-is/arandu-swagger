@@ -117,6 +117,42 @@ func TestRegistryRejectsConflictingComponentsButAcceptsIdempotentRegistration(t 
 	}
 }
 
+func TestRegistryRegistersImportedSchemaComponentsIdempotently(t *testing.T) {
+	t.Parallel()
+
+	registry := swagger.NewRegistry()
+	first, err := swagger.SchemaFromJSON([]byte(`{"type":"integer","format":"int64"}`))
+	if err != nil {
+		t.Fatalf("SchemaFromJSON(first) error = %v", err)
+	}
+	if err := registry.SchemaComponent("DatabaseID", first); err != nil {
+		t.Fatalf("first SchemaComponent() error = %v", err)
+	}
+	revision := registry.Revision()
+
+	equivalent, err := swagger.SchemaFromJSON([]byte(`{ "format": "int64", "type": "integer" }`))
+	if err != nil {
+		t.Fatalf("SchemaFromJSON(equivalent) error = %v", err)
+	}
+	if err := registry.SchemaComponent("DatabaseID", equivalent); err != nil {
+		t.Fatalf("idempotent SchemaComponent() error = %v", err)
+	}
+	if got := registry.Revision(); got != revision {
+		t.Fatalf("idempotent schema changed revision from %d to %d", revision, got)
+	}
+
+	conflicting, err := swagger.SchemaFromJSON([]byte(`{"type":"string"}`))
+	if err != nil {
+		t.Fatalf("SchemaFromJSON(conflicting) error = %v", err)
+	}
+	if err := registry.SchemaComponent("DatabaseID", conflicting); err == nil || !strings.Contains(err.Error(), "DatabaseID") {
+		t.Fatalf("conflicting SchemaComponent() error = %v, want component name", err)
+	}
+	if err := registry.SchemaComponent("Empty", swagger.Schema{}); err == nil || !strings.Contains(err.Error(), "empty") {
+		t.Fatalf("empty SchemaComponent() error = %v, want empty schema", err)
+	}
+}
+
 func TestEveryRegistryMutationInvalidatesItsRevision(t *testing.T) {
 	t.Parallel()
 

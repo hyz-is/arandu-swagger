@@ -8,6 +8,12 @@ func (m *Module) Schema(name string, schema jsonschema.Type) error {
 	return m.registry.Schema(name, schema)
 }
 
+// SchemaComponent registers an already snapshotted OpenAPI schema component
+// on this module instance.
+func (m *Module) SchemaComponent(name string, schema Schema) error {
+	return m.registry.SchemaComponent(name, schema)
+}
+
 // Parameter registers a reusable OpenAPI parameter component on this module
 // instance.
 func (m *Module) Parameter(name string, parameter Parameter) error {

@@ -16,6 +16,34 @@ if err := docs.Schema("User", userSchema); err != nil {
 }
 ```
 
+For an existing OpenAPI contract that uses Schema Object keywords outside the
+native Hesape type set, import one JSON-encoded schema through the validated
+boundary:
+
+```go
+messageSchema, err := swagger.SchemaFromJSON([]byte(`{
+	"type": "object",
+	"properties": {
+		"id": {"type": "integer", "format": "int64"}
+	},
+	"oneOf": [
+		{"required": ["id"]},
+		{"required": ["externalId"]}
+	]
+}`))
+if err != nil {
+	return err
+}
+if err := docs.SchemaComponent("Message", messageSchema); err != nil {
+	return err
+}
+```
+
+`SchemaFromJSON` is an import boundary, not a second builder. It accepts one
+Schema Object, rejects malformed structures and duplicate keys, validates
+nested schemas, preserves exact JSON numbers, and snapshots the caller's
+bytes. Use native Hesape builders whenever they can express the contract.
+
 `Schema` serializes and validates a structural JSON Schema snapshot at
 registration time, catches schema marshal panics as errors, and stores immutable
 JSON. It rejects duplicate object keys, invalid types and URI references,
@@ -29,8 +57,9 @@ under the same name is a conflict and remains a generation diagnostic.
 
 The package also validates references and OpenAPI placement. It does not run the
 complete JSON Schema meta-schema or implement every cross-keyword semantic rule.
-Schema construction remains owned by Hesape; use its typed builders rather than
-constructing arbitrary raw schema JSON.
+Schema construction remains owned by Hesape for the native subset; use
+`SchemaFromJSON` only to import an existing Schema Object that subset cannot
+represent faithfully.
 
 Component names must contain only letters, digits, `.`, `_`, and `-`.
 
@@ -70,6 +99,7 @@ One module instance can register:
 | Method | OpenAPI component section |
 | --- | --- |
 | `Schema` | `schemas` |
+| `SchemaComponent` | `schemas` imported through `SchemaFromJSON` |
 | `Parameter` | `parameters` |
 | `Response` | `responses` |
 | `RequestBody` | `requestBodies` |

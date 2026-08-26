@@ -83,6 +83,21 @@ func SchemaFrom(native jsonschema.Type) (schema Schema, err error) {
 	return snapshot, nil
 }
 
+// SchemaFromJSON validates and snapshots one JSON-encoded OpenAPI Schema
+// Object. Native Hesape builders remain the preferred construction path; this
+// import boundary preserves schema keywords that their closed type set cannot
+// represent.
+func SchemaFromJSON(encoded []byte) (Schema, error) {
+	snapshot, err := schemaFromJSON(encoded)
+	if err != nil {
+		return Schema{}, err
+	}
+	if err := validateSchemaSnapshot(snapshot.json); err != nil {
+		return Schema{}, fmt.Errorf("swagger: invalid imported schema: %w", err)
+	}
+	return snapshot, nil
+}
+
 // SchemaRef returns a local reference to a named schema component.
 func SchemaRef(name string) Schema {
 	return Schema{reference: schemaComponentPrefix + escapeJSONPointerToken(name)}

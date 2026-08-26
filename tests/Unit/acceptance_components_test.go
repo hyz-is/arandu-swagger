@@ -278,6 +278,51 @@ func TestAcceptanceExternalComponentReferencesRemainResolvableByTheConsumer(t *t
 	}
 }
 
+func TestAcceptanceImportedSchemaReferencesMustResolveAtEveryDepth(t *testing.T) {
+	t.Parallel()
+
+	registry := swagger.NewRegistry()
+	wrapper, err := swagger.SchemaFromJSON([]byte(`{
+		"type":"object",
+		"properties":{"child":{"allOf":[{"$ref":"#/components/schemas/Missing"}]}}
+	}`))
+	if err != nil {
+		t.Fatalf("SchemaFromJSON() error = %v", err)
+	}
+	if err := registry.SchemaComponent("Wrapper", wrapper); err != nil {
+		t.Fatalf("SchemaComponent() error = %v", err)
+	}
+
+	_, err = swagger.Generate(nil, registry, generationConfig())
+	if err == nil || !strings.Contains(err.Error(), "Missing") || !strings.Contains(err.Error(), "allOf") {
+		t.Fatalf("Generate() error = %v, want nested missing schema reference", err)
+	}
+}
+
+func TestAcceptanceRecursiveImportedSchemaReferencesRemainValid(t *testing.T) {
+	t.Parallel()
+
+	registry := swagger.NewRegistry()
+	first, err := swagger.SchemaFromJSON([]byte(`{"type":"object","properties":{"next":{"$ref":"#/components/schemas/Second"}}}`))
+	if err != nil {
+		t.Fatalf("SchemaFromJSON(first) error = %v", err)
+	}
+	second, err := swagger.SchemaFromJSON([]byte(`{"type":"object","properties":{"previous":{"$ref":"#/components/schemas/First"}}}`))
+	if err != nil {
+		t.Fatalf("SchemaFromJSON(second) error = %v", err)
+	}
+	if err := registry.SchemaComponent("First", first); err != nil {
+		t.Fatalf("register First: %v", err)
+	}
+	if err := registry.SchemaComponent("Second", second); err != nil {
+		t.Fatalf("register Second: %v", err)
+	}
+
+	if _, err := swagger.Generate(nil, registry, generationConfig()); err != nil {
+		t.Fatalf("Generate() recursive references error = %v", err)
+	}
+}
+
 func TestAcceptanceNestedExampleReferencesMustResolve(t *testing.T) {
 	t.Parallel()
 

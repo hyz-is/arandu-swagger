@@ -99,6 +99,12 @@ func (r *Registry) Schema(name string, native jsonschema.Type) error {
 	return r.registerSchema(name, schema)
 }
 
+// SchemaComponent registers an already snapshotted OpenAPI schema. Use
+// SchemaFromJSON to import keywords that native Hesape builders cannot express.
+func (r *Registry) SchemaComponent(name string, schema Schema) error {
+	return r.registerSchema(name, schema)
+}
+
 // Parameter registers a named reusable OpenAPI parameter.
 func (r *Registry) Parameter(name string, parameter Parameter) error {
 	copy := cloneParameter(&parameter)
@@ -152,6 +158,16 @@ func (r *Registry) registerSchema(name string, schema Schema) error {
 		return errors.New("swagger: cannot register a schema on a nil Registry")
 	}
 	if err := validateComponentName("schema", name); err != nil {
+		return r.componentError("schema", name, err)
+	}
+	if schema.IsZero() {
+		return r.componentError("schema", name, errors.New("schema is empty"))
+	}
+	encoded, err := schema.MarshalJSON()
+	if err != nil {
+		return r.componentError("schema", name, err)
+	}
+	if err := validateSchemaSnapshot(encoded); err != nil {
 		return r.componentError("schema", name, err)
 	}
 	r.mu.Lock()

@@ -67,6 +67,22 @@ if err := docs.SecurityScheme("bearerAuth", swagger.HTTPBearer("JWT")); err != n
 }
 ```
 
+When an existing OpenAPI contract uses Schema Object keywords outside the
+native Hesape builder set, import that individual schema through the validated
+JSON boundary and register its immutable snapshot:
+
+```go
+databaseID, err := swagger.SchemaFromJSON([]byte(
+	`{"type":"integer","format":"int64"}`,
+))
+if err != nil {
+	return App{}, err
+}
+if err := docs.SchemaComponent("DatabaseID", databaseID); err != nil {
+	return App{}, err
+}
+```
+
 Pass only `swagger.Documenter` to an application module, then document its
 route at the declaration site:
 
