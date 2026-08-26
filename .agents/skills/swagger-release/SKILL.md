@@ -58,7 +58,9 @@ added.
 
 ## Publication
 
-Update `CHANGELOG.md`, confirm README examples compile, and verify that every
-exported symbol has Go documentation. Go module versions and vendored release
-paths are immutable once published; correct a release with a new tag rather than
-moving an existing one.
+Confirm README examples compile and verify that every exported symbol has Go
+documentation. Work lands on `develop` and reaches `main` as a fast-forward; the
+tag is cut on `main`. Pushing it runs `.github/workflows/release.yml`, which
+publishes the release and prepends it to `CHANGELOG.md` — do not edit that file
+by hand. Go module versions and vendored release paths are immutable once
+published; correct a release with a new tag rather than moving an existing one.
