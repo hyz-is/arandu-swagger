@@ -270,4 +270,4 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) before changing public behavior.
 ## License
 
 Arandu Swagger is MIT licensed. See [LICENSE.md](LICENSE.md).
-Copyright (c) 2026 HYZIS - SERVICOS DIGITAIS LTDA - EPP.
+Copyright (c) HYZIS - SERVICOS DIGITAIS LTDA - EPP.
