@@ -3,8 +3,8 @@ module github.com/hyz-is/arandu-swagger
 go 1.26
 
 require (
-	github.com/arandu-io/framework v0.35.0
-	github.com/arandu-io/hesape v0.12.0
+	github.com/arandu-io/framework v0.37.0
+	github.com/arandu-io/hesape v0.14.0
 )
 
 require (
