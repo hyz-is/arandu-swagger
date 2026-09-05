@@ -3,16 +3,16 @@
 ## v0.2.0
 
 Version 0.2.0 raises the supported platform. Upgrade Arandu Framework to
-`v0.43.0` and Hesape to `v0.22.0` or newer before taking this release; an
+`v0.45.0` and Hesape to `v0.24.0` or newer before taking this release; an
 application below either floor will not build against it.
 
 ```bash
-go get github.com/arandu-io/framework@v0.43.0
-go get github.com/arandu-io/hesape@v0.22.0
+go get github.com/arandu-io/framework@v0.45.0
+go get github.com/arandu-io/hesape@v0.24.0
 go get github.com/hyz-is/arandu-swagger
 ```
 
-`arandu.mod.toml` now declares `framework = ">= 0.43"`.
+`arandu.mod.toml` now declares `framework = ">= 0.45"`.
 
 ### The package API did not change
 

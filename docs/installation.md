@@ -2,9 +2,9 @@
 
 ## Requirements
 
-Arandu Swagger is a Go module for applications using Arandu Framework 0.43 or
+Arandu Swagger is a Go module for applications using Arandu Framework 0.45 or
 newer. The released module currently targets Go 1.26 and uses the JSON Schema
-types provided by Hesape 0.22.
+types provided by Hesape 0.24.
 
 Install it with the Go toolchain:
 
