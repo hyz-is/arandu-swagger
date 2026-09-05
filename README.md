@@ -249,9 +249,10 @@ allowlist and carry `X-Content-Type-Options: nosniff`.
 
 The embedded Swagger UI distribution is Apache-2.0 licensed and pinned to
 version 5.32.14. Its license, notice, source, and file hashes are recorded in
-[`THIRD_PARTY.md`](THIRD_PARTY.md). No Bolt Swagger repository could be
-identified in the supplied workspace, so it was treated only as an
-unidentified design reference; no source from it was incorporated.
+[`THIRD_PARTY.md`](THIRD_PARTY.md). A project named Bolt Swagger informed the
+design, and no upstream for it could be verified, so its license and authorship
+are unknown. Nothing from it was copied: it is a design reference only, and
+[`docs/bolt-swagger.md`](docs/bolt-swagger.md) records what that means.
 
 ## Development
 

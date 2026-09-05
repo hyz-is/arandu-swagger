@@ -1,11 +1,13 @@
 # Adapting from the unidentified Bolt Swagger reference
 
-The requested “Bolt Swagger” project could not be identified in the supplied
-workspace or from a verifiable upstream source during implementation. Its
-original license, authors, and copyright notices therefore could not be
-confirmed. No Bolt Swagger file or code fragment was copied into Arandu
-Swagger. [`THIRD_PARTY.md`](../THIRD_PARTY.md) records that reference-only
-result separately from the vendored Swagger UI distribution.
+A project named “Bolt Swagger” informed the design of this package. No
+verifiable upstream for it was found, so its license, authors, and copyright
+notices are unknown, and a package cannot carry an attribution it cannot state.
+
+Nothing from it was copied — no file, no code fragment. It is a design
+reference and nothing more, which is why this package needs no notice for it.
+[`THIRD_PARTY.md`](../THIRD_PARTY.md) records that separately from the vendored
+Swagger UI distribution, which is Apache-2.0 and does carry its notice.
 
 This guide is consequently an adaptation checklist for applications that use a
 tool under that name, not a claim of API compatibility or a source migration.
