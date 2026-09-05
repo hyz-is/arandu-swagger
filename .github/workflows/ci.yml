@@ -45,3 +45,12 @@ jobs:
       - name: test
         run: go test -race ./...
 
+      # A known vulnerability blocks the merge rather than showing up in a
+      # report nobody reads. Unpinned on purpose: govulncheck reads its
+      # database at run time, so pinning the binary would not hold the answer
+      # still, and going red on a newly published advisory is the point of it.
+      - name: govulncheck
+        run: |
+          go install golang.org/x/vuln/cmd/govulncheck@latest
+          govulncheck ./...
+
