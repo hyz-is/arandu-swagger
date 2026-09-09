@@ -1,5 +1,13 @@
 # Upgrade Guide
 
+## Unreleased
+
+### The Framework floor is 0.46
+
+`arandu.mod.toml` now requires `framework = ">= 0.46"`, and the module is built
+against Framework `v0.46.4` and Hesape `v0.37.0`. A project on an older
+framework upgrades before taking this release.
+
 ## v0.2.0
 
 Version 0.2.0 raises the supported platform. Upgrade Arandu Framework to
