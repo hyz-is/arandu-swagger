@@ -576,12 +576,22 @@ func resolveParameter(parameter *Parameter, parameters map[string]*Parameter, se
 func inferredPathSchema(route *fhttp.Route, name string) (Schema, error) {
 	pattern := route.GetWheres()[name]
 	if pattern != "" {
+		pattern = routeConstraintSource(pattern)
 		if err := validatePortablePattern(pattern); err != nil {
 			return Schema{}, err
 		}
 		return SchemaFrom(jsonschema.String().Pattern(pattern))
 	}
 	return SchemaFrom(jsonschema.String())
+}
+
+func routeConstraintSource(pattern string) string {
+	const prefix = `^(?:`
+	const suffix = `)$`
+	if strings.HasPrefix(pattern, prefix) && strings.HasSuffix(pattern, suffix) {
+		return pattern[len(prefix) : len(pattern)-len(suffix)]
+	}
+	return pattern
 }
 
 func validatePortablePattern(pattern string) error {

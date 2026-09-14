@@ -2,10 +2,10 @@
 
 ## Unreleased
 
-### The Framework floor is 0.46
+### The Framework floor is 0.47
 
-`arandu.mod.toml` now requires `framework = ">= 0.46"`, and the module is built
-against Framework `v0.46.4` and Hesape `v0.37.0`. A project on an older
+`arandu.mod.toml` now requires `framework = ">= 0.47"`, and the module is built
+against Framework `v0.47.0` and Hesape `v0.41.0`. A project on an older
 framework upgrades before taking this release.
 
 ## v0.2.0
