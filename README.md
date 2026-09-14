@@ -1,3 +1,7 @@
+<p align="center">
+  <img src=".github/logo.svg" alt="Arandu" width="180">
+</p>
+
 # Arandu Swagger
 
 Arandu Swagger is the native OpenAPI integration for Arandu applications. It
