@@ -88,6 +88,10 @@ type Config struct {
 	// ExternalDocs links to additional API documentation.
 	ExternalDocs *ExternalDocumentation
 
+	// JSONSchemaDialect overrides the default OpenAPI 3.1 schema dialect URI.
+	// When empty, it defaults to "https://spec.openapis.org/oas/3.1/dialect/base".
+	JSONSchemaDialect string
+
 	// UIPath is the exact route serving the Swagger UI.
 	UIPath string
 	// SpecPath is the exact route serving the OpenAPI JSON document.
@@ -114,10 +118,66 @@ type Config struct {
 	// DisableTryItOut removes interactive request execution from Swagger UI.
 	DisableTryItOut bool
 
+	// Theme configures visual styling, dark mode, colors, branding, and HTMX behavior.
+	Theme Theme
+
 	// UIMiddleware wraps the UI and embedded asset handlers in declaration order.
 	UIMiddleware []Middleware
 	// SpecMiddleware wraps the OpenAPI JSON handler in declaration order.
 	SpecMiddleware []Middleware
+}
+
+// Theme controls visual styling, dark mode, custom colors, branding, and HTMX behavior.
+type Theme struct {
+	// Title overrides the HTML document title. When empty, Config.Title is used.
+	Title string
+	// DarkMode enables the modern dark theme matching Fastify and Peráta styling.
+	DarkMode bool
+	// PrimaryColor sets the accent color for buttons, badges, links, and highlights
+	// (e.g. "#14b8a6", "#5eead4", or any valid CSS color).
+	PrimaryColor string
+	// BackgroundColor overrides the page background color (default "#0a0a0a" in dark mode).
+	BackgroundColor string
+	// CardColor overrides the card/container background color (default "#121214" in dark mode).
+	CardColor string
+	// TextColor overrides the primary text color (default "#f4f4f5" in dark mode).
+	TextColor string
+	// MutedColor overrides subtle/secondary text (default "#a1a1aa" in dark mode).
+	MutedColor string
+	// BorderColor overrides borders (default "#27272a" in dark mode).
+	BorderColor string
+	// Logo configures an optional branding logo in the topbar header.
+	Logo *ThemeLogo
+	// Favicon is the URL to a custom favicon (e.g. "/favicon.ico" or "/favicon.png").
+	Favicon string
+	// CustomCSS is custom CSS appended to the theme stylesheet.
+	CustomCSS string
+	// CustomJS is custom JavaScript served and executed on the page.
+	CustomJS string
+	// HTMX configures HTMX-specific compatibility options.
+	HTMX HTMXConfig
+}
+
+// ThemeLogo configures the brand logo in the Swagger UI topbar.
+type ThemeLogo struct {
+	// URL is the image URL or data URI of the logo.
+	URL string
+	// Href is the link target when clicking the logo (defaults to "/").
+	Href string
+	// Alt is the alternative text for the logo (defaults to the API title).
+	Alt string
+	// Target is the anchor target, e.g. "_blank" or "_self" (defaults to "_self").
+	Target string
+}
+
+// HTMXConfig configures HTMX compatibility behavior.
+type HTMXConfig struct {
+	// Enabled adds HTMX lifecycle support to Swagger UI initialization.
+	Enabled bool
+	// Boost controls whether the Swagger UI container sets hx-boost="false"
+	// to prevent HTMX from intercepting Swagger UI's internal buttons and forms.
+	// When Enabled is true, Boost defaults to true.
+	Boost bool
 }
 
 // Validate reports configuration that cannot be served or generated safely.
@@ -166,6 +226,18 @@ func validateOperationalConfig(c Config) []error {
 		if resolved.SpecPath == initializerPath {
 			issues = append(issues, fmt.Errorf("swagger: Config.SpecPath %q conflicts with the UI initializer endpoint", resolved.SpecPath))
 		}
+		themeCSSPath := resolved.UIPath + "/theme.css"
+		if resolved.SpecPath == themeCSSPath {
+			issues = append(issues, fmt.Errorf("swagger: Config.SpecPath %q conflicts with the UI theme stylesheet endpoint", resolved.SpecPath))
+		}
+		themeJSPath := resolved.UIPath + "/theme.js"
+		if resolved.SpecPath == themeJSPath {
+			issues = append(issues, fmt.Errorf("swagger: Config.SpecPath %q conflicts with the UI theme script endpoint", resolved.SpecPath))
+		}
+	}
+
+	if c.Theme.Logo != nil && strings.TrimSpace(c.Theme.Logo.URL) == "" {
+		issues = append(issues, fmt.Errorf("swagger: Config.Theme.Logo.URL must not be blank when Logo is configured"))
 	}
 
 	for index, middleware := range c.UIMiddleware {
@@ -182,6 +254,19 @@ func validateOperationalConfig(c Config) []error {
 		issues = append(issues, err)
 	}
 	return issues
+}
+
+// HasTheme reports whether any visual styling, branding, or custom asset is configured.
+func (c Config) HasTheme() bool {
+	return c.Theme.DarkMode ||
+		c.Theme.PrimaryColor != "" ||
+		c.Theme.BackgroundColor != "" ||
+		c.Theme.CardColor != "" ||
+		c.Theme.TextColor != "" ||
+		c.Theme.MutedColor != "" ||
+		c.Theme.BorderColor != "" ||
+		c.Theme.CustomCSS != "" ||
+		c.Theme.Logo != nil
 }
 
 // withDefaults returns a copy containing the effective endpoint paths.
@@ -207,8 +292,18 @@ func cloneConfig(source Config) Config {
 	copy.Tags = cloneTags(source.Tags)
 	copy.ExternalDocs = cloneExternalDocs(source.ExternalDocs)
 	copy.Filter = cloneRouteFilter(source.Filter)
+	copy.Theme = cloneTheme(source.Theme)
 	copy.UIMiddleware = append([]Middleware(nil), source.UIMiddleware...)
 	copy.SpecMiddleware = append([]Middleware(nil), source.SpecMiddleware...)
+	return copy
+}
+
+func cloneTheme(source Theme) Theme {
+	copy := source
+	if source.Logo != nil {
+		logoCopy := *source.Logo
+		copy.Logo = &logoCopy
+	}
 	return copy
 }
 

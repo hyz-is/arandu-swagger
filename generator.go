@@ -19,8 +19,8 @@ import (
 )
 
 const (
-	openAPIVersion    = "3.1.0"
-	jsonSchemaDialect = "https://json-schema.org/draft/2020-12/schema"
+	openAPIVersion       = "3.1.0"
+	defaultSchemaDialect = "https://spec.openapis.org/oas/3.1/dialect/base"
 )
 
 var pathPlaceholderPattern = regexp.MustCompile(`\{([^{}]+)\}`)
@@ -38,9 +38,14 @@ func Generate(routes []*fhttp.Route, registry *Registry, config Config) (*Docume
 	issues = append(issues, snapshot.issues...)
 	issues = append(issues, validateGenerationConfig(config)...)
 
+	dialect := defaultSchemaDialect
+	if config.JSONSchemaDialect != "" {
+		dialect = config.JSONSchemaDialect
+	}
+
 	document := &Document{
 		OpenAPI:           openAPIVersion,
-		JSONSchemaDialect: jsonSchemaDialect,
+		JSONSchemaDialect: dialect,
 		Info: Info{
 			Title:          config.Title,
 			Summary:        config.Summary,

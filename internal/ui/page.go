@@ -6,10 +6,42 @@ import (
 	"strings"
 )
 
+// PageOptions configures the rendered HTML shell for Swagger UI.
+type PageOptions struct {
+	Title       string
+	UIPath      string
+	Favicon     string
+	HasTheme    bool
+	Theme       PageThemeOptions
+	HasCustomJS bool
+	HTMXBoost   bool
+}
+
+// PageThemeOptions holds theme-specific rendering settings for the HTML shell.
+type PageThemeOptions struct {
+	Logo *PageLogoOptions
+}
+
+// PageLogoOptions holds logo properties for rendering in the topbar.
+type PageLogoOptions struct {
+	URL    string
+	Href   string
+	Alt    string
+	Target string
+}
+
+// InitializerOptions configures the JavaScript initializer for Swagger UI.
+type InitializerOptions struct {
+	SpecPath             string
+	PersistAuthorization bool
+	DisableTryItOut      bool
+	HTMX                 bool
+}
+
 // Page returns the HTML shell for the embedded Swagger UI distribution.
 // Every executable resource is external so applications can serve the page
 // with a content security policy that does not allow inline code.
-func Page(title, uiPath string) []byte {
+func Page(opts PageOptions) []byte {
 	stylesheet, _ := Path("swagger-ui.css")
 	bundle, _ := Path("swagger-ui-bundle.js")
 
@@ -19,46 +51,136 @@ func Page(title, uiPath string) []byte {
 	page.WriteString("<meta charset=\"utf-8\">\n")
 	page.WriteString("<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n")
 	page.WriteString("<title>")
-	page.WriteString(html.EscapeString(title))
+	page.WriteString(html.EscapeString(opts.Title))
 	page.WriteString("</title>\n")
+
+	if opts.Favicon != "" {
+		page.WriteString("<link rel=\"icon\" href=\"")
+		page.WriteString(html.EscapeString(opts.Favicon))
+		page.WriteString("\">\n")
+	}
+
 	page.WriteString("<link rel=\"stylesheet\" href=\"")
-	page.WriteString(html.EscapeString(uiPath + "/" + stylesheet))
+	page.WriteString(html.EscapeString(opts.UIPath + "/" + stylesheet))
 	page.WriteString("\">\n")
+
+	if opts.HasTheme {
+		page.WriteString("<link rel=\"stylesheet\" href=\"")
+		page.WriteString(html.EscapeString(opts.UIPath + "/theme.css"))
+		page.WriteString("\">\n")
+	}
+
 	page.WriteString("</head>\n<body>\n")
-	page.WriteString("<div id=\"swagger-ui\"></div>\n")
+
+	if opts.Theme.Logo != nil && opts.Theme.Logo.URL != "" {
+		page.WriteString("<header class=\"arandu-swagger-topbar\">\n")
+		page.WriteString("  <div class=\"arandu-swagger-topbar-wrapper\">\n")
+		href := opts.Theme.Logo.Href
+		if href == "" {
+			href = "/"
+		}
+		target := opts.Theme.Logo.Target
+		if target == "" {
+			target = "_self"
+		}
+		alt := opts.Theme.Logo.Alt
+		if alt == "" {
+			alt = opts.Title
+		}
+		page.WriteString("    <a href=\"")
+		page.WriteString(html.EscapeString(href))
+		page.WriteString("\" class=\"arandu-swagger-logo-link\" target=\"")
+		page.WriteString(html.EscapeString(target))
+		page.WriteString("\">\n")
+		page.WriteString("      <img src=\"")
+		page.WriteString(html.EscapeString(opts.Theme.Logo.URL))
+		page.WriteString("\" alt=\"")
+		page.WriteString(html.EscapeString(alt))
+		page.WriteString("\" class=\"arandu-swagger-logo\">\n")
+		if alt != "" {
+			page.WriteString("      <span class=\"arandu-swagger-title\">")
+			page.WriteString(html.EscapeString(alt))
+			page.WriteString("</span>\n")
+		}
+		page.WriteString("    </a>\n")
+		page.WriteString("  </div>\n")
+		page.WriteString("</header>\n")
+	}
+
+	if opts.HTMXBoost {
+		page.WriteString("<div id=\"swagger-ui\" hx-boost=\"false\"></div>\n")
+	} else {
+		page.WriteString("<div id=\"swagger-ui\"></div>\n")
+	}
+
 	page.WriteString("<script src=\"")
-	page.WriteString(html.EscapeString(uiPath + "/" + bundle))
+	page.WriteString(html.EscapeString(opts.UIPath + "/" + bundle))
 	page.WriteString("\"></script>\n")
 	page.WriteString("<script src=\"")
-	page.WriteString(html.EscapeString(uiPath + "/swagger-initializer.js"))
+	page.WriteString(html.EscapeString(opts.UIPath + "/swagger-initializer.js"))
 	page.WriteString("\"></script>\n")
+
+	if opts.HasCustomJS {
+		page.WriteString("<script src=\"")
+		page.WriteString(html.EscapeString(opts.UIPath + "/theme.js"))
+		page.WriteString("\"></script>\n")
+	}
+
 	page.WriteString("</body>\n</html>\n")
 	return []byte(page.String())
 }
 
 // Initializer returns the external JavaScript that configures Swagger UI for
 // the same-origin specification endpoint.
-func Initializer(specPath string, persistAuthorization, disableTryItOut bool) []byte {
-	encodedPath, _ := json.Marshal(specPath)
+func Initializer(opts InitializerOptions) []byte {
+	encodedPath, _ := json.Marshal(opts.SpecPath)
 
 	var script strings.Builder
-	script.WriteString("window.addEventListener(\"load\", function () {\n")
-	script.WriteString("  window.ui = SwaggerUIBundle({\n")
-	script.WriteString("    url: ")
+	script.WriteString("(function () {\n")
+	script.WriteString("  function initSwagger() {\n")
+	script.WriteString("    var container = document.getElementById(\"swagger-ui\");\n")
+	script.WriteString("    if (!container) return;\n")
+	script.WriteString("    if (container.getAttribute(\"data-swagger-initialized\") === \"true\" && container.children.length > 0) return;\n")
+	script.WriteString("    container.setAttribute(\"data-swagger-initialized\", \"true\");\n\n")
+
+	script.WriteString("    window.ui = SwaggerUIBundle({\n")
+	script.WriteString("      url: ")
 	script.Write(encodedPath)
 	script.WriteString(",\n")
-	script.WriteString("    dom_id: \"#swagger-ui\",\n")
-	script.WriteString("    deepLinking: true,\n")
-	script.WriteString("    validatorUrl: null,\n")
-	script.WriteString("    layout: \"BaseLayout\",\n")
-	script.WriteString("    presets: [SwaggerUIBundle.presets.apis],\n")
-	if persistAuthorization {
-		script.WriteString("    persistAuthorization: true,\n")
+	script.WriteString("      dom_id: \"#swagger-ui\",\n")
+	script.WriteString("      deepLinking: true,\n")
+	script.WriteString("      validatorUrl: null,\n")
+	script.WriteString("      layout: \"BaseLayout\",\n")
+	script.WriteString("      presets: [SwaggerUIBundle.presets.apis],\n")
+	if opts.PersistAuthorization {
+		script.WriteString("      persistAuthorization: true,\n")
 	}
-	if disableTryItOut {
-		script.WriteString("    supportedSubmitMethods: [],\n")
+	if opts.DisableTryItOut {
+		script.WriteString("      supportedSubmitMethods: [],\n")
 	}
-	script.WriteString("  });\n")
-	script.WriteString("});\n")
+	script.WriteString("    });\n")
+	script.WriteString("  }\n\n")
+
+	script.WriteString("  if (document.readyState === \"complete\" || document.readyState === \"interactive\") {\n")
+	script.WriteString("    initSwagger();\n")
+	script.WriteString("  } else {\n")
+	script.WriteString("    window.addEventListener(\"DOMContentLoaded\", initSwagger);\n")
+	script.WriteString("  }\n")
+
+	if opts.HTMX {
+		script.WriteString("\n  // HTMX lifecycle integration\n")
+		script.WriteString("  document.addEventListener(\"htmx:load\", function (evt) {\n")
+		script.WriteString("    if (!evt.detail || !evt.detail.elt || evt.detail.elt.querySelector(\"#swagger-ui\") || evt.detail.elt.id === \"swagger-ui\") {\n")
+		script.WriteString("      initSwagger();\n")
+		script.WriteString("    }\n")
+		script.WriteString("  });\n")
+		script.WriteString("  document.addEventListener(\"htmx:afterSettle\", function (evt) {\n")
+		script.WriteString("    if (!evt.detail || !evt.detail.elt || evt.detail.elt.querySelector(\"#swagger-ui\") || evt.detail.elt.id === \"swagger-ui\") {\n")
+		script.WriteString("      initSwagger();\n")
+		script.WriteString("    }\n")
+		script.WriteString("  });\n")
+	}
+
+	script.WriteString("})();\n")
 	return []byte(script.String())
 }

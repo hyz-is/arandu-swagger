@@ -19,7 +19,7 @@ import (
 	"github.com/hyz-is/arandu-swagger/internal/ui"
 )
 
-const uiContentSecurityPolicy = "default-src 'none'; style-src 'self'; style-src-attr 'unsafe-inline'; script-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'"
+const uiContentSecurityPolicy = "default-src 'none'; style-src 'self'; style-src-attr 'unsafe-inline'; script-src 'self'; img-src 'self' data: https:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'"
 
 var (
 	_ foundation.Module     = (*Module)(nil)
@@ -101,6 +101,15 @@ func (m *Module) Routes(router *fhttp.Router) {
 	router.Get(redirectPath, m.redirectUI, uiMiddleware...).Name(documentationRouteName("ui.redirect", redirectPath))
 	initializerPath := m.cfg.UIPath + "/swagger-initializer.js"
 	router.Get(initializerPath, m.serveInitializer, uiMiddleware...).Name(documentationRouteName("ui.initializer", initializerPath))
+
+	if m.cfg.HasTheme() {
+		themeCSSPath := m.cfg.UIPath + "/theme.css"
+		router.Get(themeCSSPath, m.serveThemeCSS, uiMiddleware...).Name(documentationRouteName("ui.theme_css", themeCSSPath))
+	}
+	if m.cfg.Theme.CustomJS != "" {
+		themeJSPath := m.cfg.UIPath + "/theme.js"
+		router.Get(themeJSPath, m.serveThemeJS, uiMiddleware...).Name(documentationRouteName("ui.theme_js", themeJSPath))
+	}
 
 	for _, assetPath := range ui.Paths() {
 		fullPath := m.cfg.UIPath + "/" + assetPath
@@ -270,7 +279,30 @@ func (m *Module) serveUI(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Security-Policy", uiContentSecurityPolicy)
 	w.Header().Set("Referrer-Policy", "no-referrer")
 	w.WriteHeader(http.StatusOK)
-	_, _ = w.Write(ui.Page(m.cfg.Title, m.cfg.UIPath))
+
+	title := m.cfg.Title
+	if m.cfg.Theme.Title != "" {
+		title = m.cfg.Theme.Title
+	}
+
+	opts := ui.PageOptions{
+		Title:       title,
+		UIPath:      m.cfg.UIPath,
+		Favicon:     m.cfg.Theme.Favicon,
+		HasTheme:    m.cfg.HasTheme(),
+		HasCustomJS: m.cfg.Theme.CustomJS != "",
+		HTMXBoost:   m.cfg.Theme.HTMX.Boost || m.cfg.Theme.HTMX.Enabled,
+	}
+	if m.cfg.Theme.Logo != nil {
+		opts.Theme.Logo = &ui.PageLogoOptions{
+			URL:    m.cfg.Theme.Logo.URL,
+			Href:   m.cfg.Theme.Logo.Href,
+			Alt:    m.cfg.Theme.Logo.Alt,
+			Target: m.cfg.Theme.Logo.Target,
+		}
+	}
+
+	_, _ = w.Write(ui.Page(opts))
 }
 
 func (m *Module) redirectUI(w http.ResponseWriter, request *http.Request) {
@@ -281,7 +313,33 @@ func (m *Module) redirectUI(w http.ResponseWriter, request *http.Request) {
 func (m *Module) serveInitializer(w http.ResponseWriter, _ *http.Request) {
 	setNoStoreHeaders(w, "text/javascript; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
-	_, _ = w.Write(ui.Initializer(m.cfg.SpecPath, m.cfg.PersistAuthorization, m.cfg.DisableTryItOut))
+	_, _ = w.Write(ui.Initializer(ui.InitializerOptions{
+		SpecPath:             m.cfg.SpecPath,
+		PersistAuthorization: m.cfg.PersistAuthorization,
+		DisableTryItOut:      m.cfg.DisableTryItOut,
+		HTMX:                 m.cfg.Theme.HTMX.Enabled,
+	}))
+}
+
+func (m *Module) serveThemeCSS(w http.ResponseWriter, _ *http.Request) {
+	setNoStoreHeaders(w, "text/css; charset=utf-8")
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write(ui.GenerateThemeCSS(ui.ThemeOptions{
+		DarkMode:        m.cfg.Theme.DarkMode,
+		PrimaryColor:    m.cfg.Theme.PrimaryColor,
+		BackgroundColor: m.cfg.Theme.BackgroundColor,
+		CardColor:       m.cfg.Theme.CardColor,
+		TextColor:       m.cfg.Theme.TextColor,
+		MutedColor:      m.cfg.Theme.MutedColor,
+		BorderColor:     m.cfg.Theme.BorderColor,
+		CustomCSS:       m.cfg.Theme.CustomCSS,
+	}))
+}
+
+func (m *Module) serveThemeJS(w http.ResponseWriter, _ *http.Request) {
+	setNoStoreHeaders(w, "text/javascript; charset=utf-8")
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write([]byte(m.cfg.Theme.CustomJS))
 }
 
 func (m *Module) serveAsset(assetPath string) http.HandlerFunc {
