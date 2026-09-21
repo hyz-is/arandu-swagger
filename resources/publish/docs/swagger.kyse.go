@@ -52,6 +52,10 @@ type SwaggerViewData struct {
 			@endif
 		</div>
 		<div class="flex items-center gap-2.5">
+			<a class="btn" href="/" data-variant="secondary">
+				{!! icons.ArrowLeft(icons.Props{}) !!}
+				<span>Voltar para o site</span>
+			</a>
 			<a class="btn" href="{{ .SpecPath }}" target="_blank" rel="noopener noreferrer">
 				{!! icons.Code(icons.Props{}) !!}
 				<span>OpenAPI JSON</span>

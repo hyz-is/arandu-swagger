@@ -77,6 +77,26 @@ func GenerateThemeCSS(opts ThemeOptions) []byte {
 	css.WriteString(fmt.Sprintf("  --swagger-border: %s;\n", border))
 	css.WriteString("}\n\n")
 
+	css.WriteString(fmt.Sprintf(`html[data-theme="dark"], body.dark-theme {
+  --swagger-primary: %s;
+  --swagger-bg: #0a0a0a;
+  --swagger-card: #121214;
+  --swagger-text: #f4f4f5;
+  --swagger-muted: #a1a1aa;
+  --swagger-border: #27272a;
+}
+
+html[data-theme="light"], body.light-theme {
+  --swagger-primary: %s;
+  --swagger-bg: #ffffff;
+  --swagger-card: #fafafa;
+  --swagger-text: #18181b;
+  --swagger-muted: #71717a;
+  --swagger-border: #e4e4e7;
+}
+
+`, primary, primary))
+
 	css.WriteString(`html, body {
   margin: 0;
   padding: 0;
@@ -96,7 +116,7 @@ func GenerateThemeCSS(opts ThemeOptions) []byte {
 .arandu-swagger-topbar {
   background-color: var(--swagger-card);
   border-bottom: 1px solid var(--swagger-border);
-  padding: 12px 24px;
+  padding: 10px 24px;
   display: flex;
   align-items: center;
 }
@@ -104,10 +124,23 @@ func GenerateThemeCSS(opts ThemeOptions) []byte {
 .arandu-swagger-topbar-wrapper {
   display: flex;
   align-items: center;
-  gap: 12px;
+  justify-content: space-between;
+  gap: 16px;
   max-width: 1460px;
   width: 100%;
   margin: 0 auto;
+}
+
+.arandu-swagger-topbar-start {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.arandu-swagger-topbar-end {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .arandu-swagger-logo-link {
@@ -130,6 +163,82 @@ func GenerateThemeCSS(opts ThemeOptions) []byte {
 
 .arandu-swagger-title {
   color: var(--swagger-text);
+}
+
+.arandu-swagger-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  color: var(--swagger-muted);
+  background-color: var(--swagger-bg);
+  border: 1px solid var(--swagger-border);
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.15s ease;
+}
+
+.arandu-swagger-back-link:hover {
+  color: var(--swagger-text);
+  border-color: var(--swagger-primary);
+  text-decoration: none;
+}
+
+.arandu-swagger-theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 6px;
+  border: 1px solid var(--swagger-border);
+  background-color: var(--swagger-bg);
+  color: var(--swagger-muted);
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.15s ease;
+}
+
+.arandu-swagger-theme-toggle:hover {
+  color: var(--swagger-text);
+  border-color: var(--swagger-primary);
+}
+
+.arandu-swagger-glyph-light,
+.arandu-swagger-glyph-dark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Default state */
+.arandu-swagger-glyph-dark {
+  display: none !important;
+}
+.arandu-swagger-glyph-light {
+  display: inline-flex !important;
+}
+
+/* In light mode: moon is visible (click -> dark) */
+html[data-theme="light"] .arandu-swagger-glyph-light,
+body.light-theme .arandu-swagger-glyph-light {
+  display: none !important;
+}
+html[data-theme="light"] .arandu-swagger-glyph-dark,
+body.light-theme .arandu-swagger-glyph-dark {
+  display: inline-flex !important;
+}
+
+/* In dark mode: sun is visible (click -> light) */
+html[data-theme="dark"] .arandu-swagger-glyph-dark,
+body.dark-theme .arandu-swagger-glyph-dark {
+  display: none !important;
+}
+html[data-theme="dark"] .arandu-swagger-glyph-light,
+body.dark-theme .arandu-swagger-glyph-light {
+  display: inline-flex !important;
 }
 
 .swagger-ui .info {

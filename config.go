@@ -165,6 +165,15 @@ type Theme struct {
 	BorderColor string
 	// Logo configures an optional branding logo in the topbar header.
 	Logo *ThemeLogo
+	// BackURL configures the "Voltar para o site" link target in the topbar.
+	// When empty, defaults to ThemeLogo.Href or "/".
+	BackURL string
+	// BackText overrides the back link text (defaults to "Voltar para o site" for pt/pt-BR and "Back to site" for other locales).
+	BackText string
+	// BackTarget is the anchor target for the back link (defaults to "_self").
+	BackTarget string
+	// DisableThemeToggle hides the light/dark theme switch in the topbar.
+	DisableThemeToggle bool
 	// Favicon is the URL to a custom favicon (e.g. "/favicon.ico" or "/favicon.png").
 	Favicon string
 	// CustomCSS is custom CSS appended to the theme stylesheet.
@@ -283,7 +292,9 @@ func (c Config) HasTheme() bool {
 		c.Theme.MutedColor != "" ||
 		c.Theme.BorderColor != "" ||
 		c.Theme.CustomCSS != "" ||
-		c.Theme.Logo != nil
+		c.Theme.Logo != nil ||
+		c.Theme.BackURL != "" ||
+		!c.Theme.DisableThemeToggle
 }
 
 // withDefaults returns a copy containing the effective endpoint paths and defaults.
@@ -313,6 +324,23 @@ func (c Config) withDefaults() Config {
 	}
 	if len(c.Translations) == 0 && len(c.Theme.Translations) > 0 {
 		c.Translations = cloneTranslations(c.Theme.Translations)
+	}
+	if c.Theme.BackURL == "" {
+		if c.Theme.Logo != nil && c.Theme.Logo.Href != "" {
+			c.Theme.BackURL = c.Theme.Logo.Href
+		} else {
+			c.Theme.BackURL = "/"
+		}
+	}
+	if c.Theme.BackText == "" {
+		if strings.HasPrefix(strings.ToLower(c.Locale), "pt") {
+			c.Theme.BackText = "Voltar para o site"
+		} else {
+			c.Theme.BackText = "Back to site"
+		}
+	}
+	if c.Theme.BackTarget == "" {
+		c.Theme.BackTarget = "_self"
 	}
 	return c
 }

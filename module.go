@@ -327,13 +327,17 @@ func (m *Module) serveUI(w http.ResponseWriter, _ *http.Request) {
 	}
 
 	opts := ui.PageOptions{
-		Title:       title,
-		UIPath:      m.cfg.UIPath,
-		Favicon:     m.cfg.Theme.Favicon,
-		Locale:      m.cfg.Locale,
-		HasTheme:    m.cfg.HasTheme(),
-		HasCustomJS: m.cfg.Theme.CustomJS != "",
-		HTMXBoost:   m.cfg.Theme.HTMX.Boost || m.cfg.Theme.HTMX.Enabled,
+		Title:              title,
+		UIPath:             m.cfg.UIPath,
+		Favicon:            m.cfg.Theme.Favicon,
+		Locale:             m.cfg.Locale,
+		HasTheme:           m.cfg.HasTheme(),
+		HasCustomJS:        m.cfg.Theme.CustomJS != "",
+		HTMXBoost:          m.cfg.Theme.HTMX.Boost || m.cfg.Theme.HTMX.Enabled,
+		BackURL:            m.cfg.Theme.BackURL,
+		BackText:           m.cfg.Theme.BackText,
+		BackTarget:         m.cfg.Theme.BackTarget,
+		DisableThemeToggle: m.cfg.Theme.DisableThemeToggle,
 	}
 	if m.cfg.Theme.Logo != nil {
 		opts.Theme.Logo = &ui.PageLogoOptions{
@@ -362,6 +366,8 @@ func (m *Module) serveInitializer(w http.ResponseWriter, _ *http.Request) {
 		HTMX:                 m.cfg.Theme.HTMX.Enabled,
 		Locale:               m.cfg.Locale,
 		Translations:         m.cfg.Translations,
+		DefaultDark:          m.cfg.Theme.DarkMode,
+		DisableThemeToggle:   m.cfg.Theme.DisableThemeToggle,
 	}))
 }
 

@@ -84,10 +84,58 @@ func TestThemeRendersLogoAndFaviconInTopbar(t *testing.T) {
 		`target="_blank"`,
 		`src="/assets/brand/perata-icon.svg"`,
 		`alt="Perata Brand"`,
+		`class="arandu-swagger-back-link"`,
+		`class="arandu-swagger-theme-toggle"`,
 	} {
 		if !strings.Contains(html, fragment) {
 			t.Errorf("/docs missing expected branding fragment %q", fragment)
 		}
+	}
+}
+
+func TestThemeRendersBackLinkAndThemeToggleInTopbar(t *testing.T) {
+	t.Parallel()
+
+	router := fhttp.NewRouter()
+	cfg := enabledConfig()
+	cfg.Locale = "pt-BR"
+	cfg.Theme = swagger.Theme{
+		DarkMode: true,
+		BackURL:  "/",
+		BackText: "Voltar para o site",
+		Logo: &swagger.ThemeLogo{
+			URL: "/favicon.svg",
+			Alt: "Peráta",
+		},
+	}
+	module := newModule(t, cfg)
+	module.Routes(router.ForModule(module.Name()))
+
+	page := request(router, "/docs")
+	if page.Code != http.StatusOK {
+		t.Fatalf("GET /docs answered %d", page.Code)
+	}
+
+	html := page.Body.String()
+	for _, expected := range []string{
+		`<header class="arandu-swagger-topbar">`,
+		`<div class="arandu-swagger-topbar-start">`,
+		`<div class="arandu-swagger-topbar-end">`,
+		`href="/" class="arandu-swagger-back-link"`,
+		`<span>Voltar para o site</span>`,
+		`<button type="button" class="arandu-swagger-theme-toggle"`,
+	} {
+		if !strings.Contains(html, expected) {
+			t.Errorf("/docs missing expected topbar element %q", expected)
+		}
+	}
+
+	initJS := request(router, "/docs/swagger-initializer.js")
+	if initJS.Code != http.StatusOK {
+		t.Fatalf("GET /docs/swagger-initializer.js answered %d", initJS.Code)
+	}
+	if !strings.Contains(initJS.Body.String(), "applyTheme") || !strings.Contains(initJS.Body.String(), "arandu-swagger-theme-toggle") {
+		t.Errorf("expected swagger-initializer.js to contain theme toggle runtime")
 	}
 }
 
