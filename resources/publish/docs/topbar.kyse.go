@@ -8,7 +8,7 @@ import (
 )
 
 @go
-type SwaggerViewData = swagger.SwaggerViewData
+type TopbarViewData = swagger.SwaggerViewData
 @endgo
 
 <header class="arandu-swagger-topbar">

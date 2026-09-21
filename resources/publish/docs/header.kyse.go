@@ -8,7 +8,7 @@ import (
 )
 
 @go
-type SwaggerViewData = swagger.SwaggerViewData
+type HeaderViewData = swagger.SwaggerViewData
 @endgo
 
 <div class="business-context">

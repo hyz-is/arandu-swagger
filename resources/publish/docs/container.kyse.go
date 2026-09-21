@@ -7,7 +7,7 @@ import (
 )
 
 @go
-type SwaggerViewData = swagger.SwaggerViewData
+type ContainerViewData = swagger.SwaggerViewData
 @endgo
 
 <div id="swagger-ui" class="perata-swagger-container" hx-boost="false"></div>
