@@ -45,3 +45,11 @@ type SwaggerViewData struct {
 	UIPath      string
 	Locale      string
 }
+
+func (d SwaggerViewData) PageTitle() string       { return d.Title }
+func (d SwaggerViewData) BrandName() string       { return "Peráta" }
+func (d SwaggerViewData) PageDescription() string { return d.Description }
+func (d SwaggerViewData) CanonicalURL() string    { return d.UIPath }
+func (d SwaggerViewData) CSRFToken() string       { return "" }
+func (d SwaggerViewData) SignedIn() bool          { return false }
+func (d SwaggerViewData) HomeLink() string        { return "/" }
