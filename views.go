@@ -4,6 +4,7 @@ import (
 	"embed"
 
 	"github.com/arandu-io/framework/foundation"
+	"github.com/arandu-io/hesape/view"
 )
 
 // The view sources this package offers to the project that installs it.
@@ -38,18 +39,12 @@ func PublishedPaths() []string {
 
 // SwaggerViewData is the data payload provided to the Kyse view.
 type SwaggerViewData struct {
-	Title       string
-	Description string
-	Version     string
-	SpecPath    string
-	UIPath      string
-	Locale      string
+	view.Page
+	Version  string
+	SpecPath string
+	UIPath   string
+	Locale   string
 }
 
-func (d SwaggerViewData) PageTitle() string       { return d.Title }
-func (d SwaggerViewData) BrandName() string       { return "Peráta" }
-func (d SwaggerViewData) PageDescription() string { return d.Description }
-func (d SwaggerViewData) CanonicalURL() string    { return d.UIPath }
-func (d SwaggerViewData) CSRFToken() string       { return "" }
-func (d SwaggerViewData) SignedIn() bool          { return false }
-func (d SwaggerViewData) HomeLink() string        { return "/" }
+// Compile-time check that SwaggerViewData satisfies the view.Layout interface.
+var _ view.Layout = SwaggerViewData{}

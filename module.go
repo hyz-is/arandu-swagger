@@ -15,6 +15,7 @@ import (
 
 	"github.com/arandu-io/framework/foundation"
 	fhttp "github.com/arandu-io/framework/http"
+	"github.com/arandu-io/hesape/view"
 
 	"github.com/hyz-is/arandu-swagger/internal/ui"
 )
@@ -284,13 +285,27 @@ func (m *Module) serveUIAction(ctx *fhttp.Context) error {
 	if m.cfg.Theme.Title != "" {
 		title = m.cfg.Theme.Title
 	}
+	brand := "Peráta"
+	if m.cfg.Theme.Logo != nil && m.cfg.Theme.Logo.Alt != "" {
+		brand = m.cfg.Theme.Logo.Alt
+	}
+	homeURL := "/workspaces"
+	if m.cfg.Theme.Logo != nil && m.cfg.Theme.Logo.Href != "" {
+		homeURL = m.cfg.Theme.Logo.Href
+	}
 	data := SwaggerViewData{
-		Title:       title,
-		Description: m.cfg.Description,
-		Version:     m.cfg.Version,
-		SpecPath:    m.cfg.SpecPath,
-		UIPath:      m.cfg.UIPath,
-		Locale:      m.cfg.Locale,
+		Page: view.Page{
+			Title:       title,
+			Description: m.cfg.Description,
+			AppName:     brand,
+			Canonical:   m.cfg.UIPath,
+			Path:        m.cfg.UIPath,
+			HomeURL:     homeURL,
+		},
+		Version:  m.cfg.Version,
+		SpecPath: m.cfg.SpecPath,
+		UIPath:   m.cfg.UIPath,
+		Locale:   m.cfg.Locale,
 	}
 	if err := ctx.View(viewName, data); err == nil {
 		return nil
