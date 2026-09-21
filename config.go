@@ -118,6 +118,17 @@ type Config struct {
 	// DisableTryItOut removes interactive request execution from Swagger UI.
 	DisableTryItOut bool
 
+	// Locale specifies the UI language and localization (e.g. "pt-BR", "en").
+	// When empty, it defaults to "en".
+	Locale string
+	// Translations supplies custom key-value translation mappings to override
+	// or extend Swagger UI text strings.
+	Translations map[string]string
+	// ViewName specifies the Kyse view name rendered for the UI endpoint.
+	// Defaults to "docs.swagger". If the view is not registered or fails to render,
+	// the embedded standalone HTML shell is served as fallback.
+	ViewName string
+
 	// Theme configures visual styling, dark mode, colors, branding, and HTMX behavior.
 	Theme Theme
 
@@ -133,6 +144,12 @@ type Theme struct {
 	Title string
 	// DarkMode enables the modern dark theme matching Fastify and Peráta styling.
 	DarkMode bool
+	// Locale specifies the UI language (e.g. "pt-BR", "en").
+	Locale string
+	// Translations supplies custom translation overrides.
+	Translations map[string]string
+	// ViewName specifies the Kyse view name rendered for the UI endpoint.
+	ViewName string
 	// PrimaryColor sets the accent color for buttons, badges, links, and highlights
 	// (e.g. "#14b8a6", "#5eead4", or any valid CSS color).
 	PrimaryColor string
@@ -269,7 +286,7 @@ func (c Config) HasTheme() bool {
 		c.Theme.Logo != nil
 }
 
-// withDefaults returns a copy containing the effective endpoint paths.
+// withDefaults returns a copy containing the effective endpoint paths and defaults.
 func (c Config) withDefaults() Config {
 	if c.UIPath == "" {
 		c.UIPath = DefaultUIPath
@@ -280,6 +297,22 @@ func (c Config) withDefaults() Config {
 		} else {
 			c.SpecPath = c.UIPath + "/openapi.json"
 		}
+	}
+	if c.Locale == "" && c.Theme.Locale != "" {
+		c.Locale = c.Theme.Locale
+	}
+	if c.Locale == "" {
+		c.Locale = "en"
+	}
+	if c.ViewName == "" {
+		if c.Theme.ViewName != "" {
+			c.ViewName = c.Theme.ViewName
+		} else {
+			c.ViewName = "docs.swagger"
+		}
+	}
+	if len(c.Translations) == 0 && len(c.Theme.Translations) > 0 {
+		c.Translations = cloneTranslations(c.Theme.Translations)
 	}
 	return c
 }
@@ -292,6 +325,7 @@ func cloneConfig(source Config) Config {
 	copy.Tags = cloneTags(source.Tags)
 	copy.ExternalDocs = cloneExternalDocs(source.ExternalDocs)
 	copy.Filter = cloneRouteFilter(source.Filter)
+	copy.Translations = cloneTranslations(source.Translations)
 	copy.Theme = cloneTheme(source.Theme)
 	copy.UIMiddleware = append([]Middleware(nil), source.UIMiddleware...)
 	copy.SpecMiddleware = append([]Middleware(nil), source.SpecMiddleware...)
@@ -300,9 +334,21 @@ func cloneConfig(source Config) Config {
 
 func cloneTheme(source Theme) Theme {
 	copy := source
+	copy.Translations = cloneTranslations(source.Translations)
 	if source.Logo != nil {
 		logoCopy := *source.Logo
 		copy.Logo = &logoCopy
+	}
+	return copy
+}
+
+func cloneTranslations(source map[string]string) map[string]string {
+	if len(source) == 0 {
+		return nil
+	}
+	copy := make(map[string]string, len(source))
+	for k, v := range source {
+		copy[k] = v
 	}
 	return copy
 }

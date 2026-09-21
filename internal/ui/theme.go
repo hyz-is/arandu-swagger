@@ -196,35 +196,57 @@ func GenerateThemeCSS(opts ThemeOptions) []byte {
 
 .swagger-ui .btn {
   border-radius: 6px;
-  font-weight: 600;
+  font-weight: 500;
   transition: all 0.15s ease-in-out;
 }
 
 .swagger-ui .btn.authorize {
-  background-color: transparent;
-  color: var(--swagger-primary);
-  border-color: var(--swagger-primary);
+  background-color: rgba(20, 184, 166, 0.1) !important;
+  color: var(--swagger-primary) !important;
+  border: 1px solid var(--swagger-primary) !important;
+  border-radius: 6px !important;
+  padding: 6px 14px !important;
+  font-size: 13px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  box-shadow: none !important;
 }
 
 .swagger-ui .btn.authorize:hover {
-  background-color: var(--swagger-primary);
-  color: #000000;
+  background-color: var(--swagger-primary) !important;
+  color: #000000 !important;
 }
 
 .swagger-ui .btn.authorize svg {
-  fill: currentColor;
+  fill: currentColor !important;
 }
 
 .swagger-ui .btn.execute {
-  background-color: var(--swagger-primary);
-  border-color: var(--swagger-primary);
-  color: #000000;
-  font-weight: 700;
+  background-color: var(--swagger-primary) !important;
+  border: 1px solid var(--swagger-primary) !important;
+  color: #000000 !important;
+  font-weight: 600 !important;
+  border-radius: 6px !important;
+  padding: 6px 16px !important;
+}
+
+.swagger-ui .btn.execute:hover {
+  opacity: 0.9 !important;
 }
 
 .swagger-ui .btn.cancel {
-  border-color: var(--swagger-border);
-  color: var(--swagger-muted);
+  border: 1px solid var(--swagger-border) !important;
+  background-color: transparent !important;
+  color: var(--swagger-muted) !important;
+  border-radius: 6px !important;
+}
+
+.swagger-ui .btn.btn-clear {
+  background-color: #27272a !important;
+  border: 1px solid #3f3f46 !important;
+  color: #f4f4f5 !important;
+  border-radius: 6px !important;
 }
 
 .swagger-ui .opblock-tag-section {
@@ -265,11 +287,13 @@ func GenerateThemeCSS(opts ThemeOptions) []byte {
 }
 
 .swagger-ui .opblock .opblock-summary-method {
-  border-radius: 4px;
+  border-radius: 6px;
   font-weight: 700;
-  min-width: 70px;
+  min-width: 68px;
   text-shadow: none;
-  font-size: 13px;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  padding: 5px 10px;
 }
 
 .swagger-ui .opblock .opblock-summary-path {
@@ -294,18 +318,70 @@ func GenerateThemeCSS(opts ThemeOptions) []byte {
   border-top: 1px solid var(--swagger-border);
 }
 
+.swagger-ui .opblock .opblock-section-header,
 .swagger-ui .opblock-section-header {
-  background-color: rgba(255, 255, 255, 0.02);
-  border-color: var(--swagger-border);
-  color: var(--swagger-text);
+  background: #18181b !important;
+  background-color: #18181b !important;
+  border-top: 1px solid var(--swagger-border) !important;
+  border-bottom: 1px solid var(--swagger-border) !important;
+  color: var(--swagger-text) !important;
+  box-shadow: none !important;
 }
 
+.swagger-ui .opblock .opblock-section-header h4,
 .swagger-ui .opblock-section-header h4 {
-  color: var(--swagger-text);
+  color: var(--swagger-text) !important;
+  font-weight: 600 !important;
 }
 
+.swagger-ui .opblock .opblock-section-header > label,
+.swagger-ui .opblock-section-header > label {
+  color: var(--swagger-muted) !important;
+}
+
+.swagger-ui .opblock .opblock-section-header .try-out__btn,
+.swagger-ui .btn.try-out__btn {
+  background-color: #27272a !important;
+  border: 1px solid #3f3f46 !important;
+  color: #f4f4f5 !important;
+  border-radius: 6px !important;
+  padding: 6px 14px !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  box-shadow: none !important;
+  transition: all 0.15s ease !important;
+}
+
+.swagger-ui .opblock .opblock-section-header .try-out__btn:hover,
+.swagger-ui .btn.try-out__btn:hover {
+  background-color: #3f3f46 !important;
+  color: #ffffff !important;
+}
+
+.swagger-ui .opblock .opblock-section-header .try-out__btn.cancel,
+.swagger-ui .btn.try-out__btn.cancel {
+  background-color: rgba(239, 68, 68, 0.15) !important;
+  border-color: rgba(239, 68, 68, 0.4) !important;
+  color: #f87171 !important;
+}
+
+.swagger-ui .tabheader,
+.swagger-ui .tab-item,
 .swagger-ui .tabheader-title {
-  color: var(--swagger-text);
+  color: var(--swagger-text) !important;
+}
+
+.swagger-ui .opblock .tab-header {
+  border-bottom: 1px solid var(--swagger-border) !important;
+}
+
+.swagger-ui .responses-wrapper,
+.swagger-ui .responses-inner {
+  background-color: var(--swagger-card) !important;
+}
+
+.swagger-ui .parameters-container {
+  background-color: var(--swagger-card) !important;
 }
 
 .swagger-ui .opblock.opblock-get {
@@ -393,18 +469,19 @@ func GenerateThemeCSS(opts ThemeOptions) []byte {
 .swagger-ui input[type=email],
 .swagger-ui textarea,
 .swagger-ui select {
-  background-color: rgba(255, 255, 255, 0.05);
-  border: 1px solid var(--swagger-border);
-  color: var(--swagger-text);
-  border-radius: 6px;
-  padding: 8px 12px;
+  background-color: #18181b !important;
+  border: 1px solid var(--swagger-border) !important;
+  color: var(--swagger-text) !important;
+  border-radius: 6px !important;
+  padding: 8px 12px !important;
 }
 
 .swagger-ui input[type=text]:focus,
 .swagger-ui textarea:focus,
 .swagger-ui select:focus {
-  border-color: var(--swagger-primary);
-  outline: none;
+  border-color: var(--swagger-primary) !important;
+  box-shadow: 0 0 0 1px var(--swagger-primary) !important;
+  outline: none !important;
 }
 
 .swagger-ui .response-col_status {

@@ -22,9 +22,10 @@ import (
 const uiContentSecurityPolicy = "default-src 'none'; style-src 'self'; style-src-attr 'unsafe-inline'; script-src 'self'; img-src 'self' data: https:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'"
 
 var (
-	_ foundation.Module     = (*Module)(nil)
-	_ foundation.Diagnostic = (*Module)(nil)
-	_ Documenter            = (*Module)(nil)
+	_ foundation.Module      = (*Module)(nil)
+	_ foundation.Diagnostic  = (*Module)(nil)
+	_ foundation.Publishable = (*Module)(nil)
+	_ Documenter             = (*Module)(nil)
 )
 
 // Module is the Arandu module that owns one isolated documentation registry.
@@ -96,7 +97,7 @@ func (m *Module) Routes(router *fhttp.Router) {
 		return
 	}
 
-	router.Get(m.cfg.UIPath, m.serveUI, uiMiddleware...).Name(documentationRouteName("ui", m.cfg.UIPath))
+	router.Action("GET", m.cfg.UIPath, m.serveUIAction, uiMiddleware...).Name(documentationRouteName("ui", m.cfg.UIPath))
 	redirectPath := m.cfg.UIPath + "/{$}"
 	router.Get(redirectPath, m.redirectUI, uiMiddleware...).Name(documentationRouteName("ui.redirect", redirectPath))
 	initializerPath := m.cfg.UIPath + "/swagger-initializer.js"
@@ -274,6 +275,31 @@ func (m *Module) serveSpecification(w http.ResponseWriter, _ *http.Request) {
 	_, _ = w.Write(data)
 }
 
+func (m *Module) serveUIAction(ctx *fhttp.Context) error {
+	viewName := m.cfg.ViewName
+	if viewName == "" {
+		viewName = "docs.swagger"
+	}
+	title := m.cfg.Title
+	if m.cfg.Theme.Title != "" {
+		title = m.cfg.Theme.Title
+	}
+	data := SwaggerViewData{
+		Title:       title,
+		Description: m.cfg.Description,
+		Version:     m.cfg.Version,
+		SpecPath:    m.cfg.SpecPath,
+		UIPath:      m.cfg.UIPath,
+		Locale:      m.cfg.Locale,
+	}
+	if err := ctx.View(viewName, data); err == nil {
+		return nil
+	}
+	// Fallback to standalone embedded HTML shell
+	m.serveUI(ctx.Response, ctx.Request)
+	return nil
+}
+
 func (m *Module) serveUI(w http.ResponseWriter, _ *http.Request) {
 	setNoStoreHeaders(w, "text/html; charset=utf-8")
 	w.Header().Set("Content-Security-Policy", uiContentSecurityPolicy)
@@ -289,6 +315,7 @@ func (m *Module) serveUI(w http.ResponseWriter, _ *http.Request) {
 		Title:       title,
 		UIPath:      m.cfg.UIPath,
 		Favicon:     m.cfg.Theme.Favicon,
+		Locale:      m.cfg.Locale,
 		HasTheme:    m.cfg.HasTheme(),
 		HasCustomJS: m.cfg.Theme.CustomJS != "",
 		HTMXBoost:   m.cfg.Theme.HTMX.Boost || m.cfg.Theme.HTMX.Enabled,
@@ -318,6 +345,8 @@ func (m *Module) serveInitializer(w http.ResponseWriter, _ *http.Request) {
 		PersistAuthorization: m.cfg.PersistAuthorization,
 		DisableTryItOut:      m.cfg.DisableTryItOut,
 		HTMX:                 m.cfg.Theme.HTMX.Enabled,
+		Locale:               m.cfg.Locale,
+		Translations:         m.cfg.Translations,
 	}))
 }
 
