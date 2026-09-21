@@ -3,7 +3,6 @@
 package docs
 
 import (
-	"github.com/arandu-io/kyse/icons"
 	swagger "github.com/hyz-is/arandu-swagger"
 )
 
@@ -11,41 +10,34 @@ import (
 type SwaggerViewData = swagger.SwaggerViewData
 @endgo
 
+{{--
+Layout padrão dedicado do Swagger UI.
+Para utilizar dentro do layout principal da sua aplicação (ex: layouts.app):
+
+@extends('layouts.app')
+
+@section('content')
+<div class="business-dashboard space-y-6">
+	@include('docs.header')
+
+	<div class="business-panel overflow-hidden p-0 border border-border rounded-lg bg-card">
+		@include('docs.container')
+	</div>
+</div>
+@endsection
+--}}
+
 <!doctype html>
 <html lang="{{ .Locale }}" class="dark" data-theme="dark">
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>{{ .Title }}</title>
-	<link rel="icon" href="/favicon.ico">
-	<link rel="stylesheet" href="{{ .UIPath }}/assets/5.32.14/swagger-ui.css">
-	<link rel="stylesheet" href="{{ .UIPath }}/theme.css">
+	<link rel="icon" href="{{ .FaviconOrDefault() }}">
 </head>
 <body class="dark-theme">
-	<header class="arandu-swagger-topbar">
-		<div class="arandu-swagger-topbar-wrapper">
-			<div class="arandu-swagger-topbar-start">
-				<a href="/" class="arandu-swagger-logo-link">
-					<img src="/favicon.svg" alt="Peráta" class="arandu-swagger-logo">
-					<span class="arandu-swagger-title">Peráta</span>
-				</a>
-			</div>
-			<div class="arandu-swagger-topbar-end">
-				<a href="/" class="arandu-swagger-back-link">
-					{!! icons.ArrowLeft(icons.Props{}) !!}
-					<span>Voltar para o site</span>
-				</a>
-				<button type="button" class="arandu-swagger-theme-toggle" aria-label="Alternar tema" title="Alternar tema">
-					<span class="arandu-swagger-glyph-light" aria-hidden="true">{!! icons.Sun(icons.Props{}) !!}</span>
-					<span class="arandu-swagger-glyph-dark" aria-hidden="true">{!! icons.Moon(icons.Props{}) !!}</span>
-				</button>
-			</div>
-		</div>
-	</header>
+	@include('docs.topbar')
 
-	<div id="swagger-ui" class="perata-swagger-container" hx-boost="false"></div>
-
-	<script src="{{ .UIPath }}/assets/5.32.14/swagger-ui-bundle.js"></script>
-	<script src="{{ .UIPath }}/swagger-initializer.js"></script>
+	@include('docs.container')
 </body>
 </html>

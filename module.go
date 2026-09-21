@@ -293,6 +293,22 @@ func (m *Module) serveUIAction(ctx *fhttp.Context) error {
 	if m.cfg.Theme.Logo != nil && m.cfg.Theme.Logo.Href != "" {
 		homeURL = m.cfg.Theme.Logo.Href
 	}
+	logoURL := "/favicon.svg"
+	logoAlt := brand
+	logoHref := homeURL
+	logoTarget := ""
+	if m.cfg.Theme.Logo != nil {
+		if m.cfg.Theme.Logo.URL != "" {
+			logoURL = m.cfg.Theme.Logo.URL
+		}
+		if m.cfg.Theme.Logo.Alt != "" {
+			logoAlt = m.cfg.Theme.Logo.Alt
+		}
+		if m.cfg.Theme.Logo.Href != "" {
+			logoHref = m.cfg.Theme.Logo.Href
+		}
+		logoTarget = m.cfg.Theme.Logo.Target
+	}
 	data := SwaggerViewData{
 		Page: view.Page{
 			Title:       title,
@@ -302,10 +318,19 @@ func (m *Module) serveUIAction(ctx *fhttp.Context) error {
 			Path:        m.cfg.UIPath,
 			HomeURL:     homeURL,
 		},
-		Version:  m.cfg.Version,
-		SpecPath: m.cfg.SpecPath,
-		UIPath:   m.cfg.UIPath,
-		Locale:   m.cfg.Locale,
+		Version:            m.cfg.Version,
+		SpecPath:           m.cfg.SpecPath,
+		UIPath:             m.cfg.UIPath,
+		Locale:             m.cfg.Locale,
+		Favicon:            m.cfg.Theme.Favicon,
+		BackURL:            m.cfg.Theme.BackURL,
+		BackText:           m.cfg.Theme.BackText,
+		BackTarget:         m.cfg.Theme.BackTarget,
+		DisableThemeToggle: m.cfg.Theme.DisableThemeToggle,
+		LogoURL:            logoURL,
+		LogoAlt:            logoAlt,
+		LogoHref:           logoHref,
+		LogoTarget:         logoTarget,
 	}
 	if err := ctx.View(viewName, data); err == nil {
 		return nil

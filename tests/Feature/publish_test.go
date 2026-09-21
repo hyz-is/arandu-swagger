@@ -41,7 +41,15 @@ func TestModuleImplementsPublishable(t *testing.T) {
 	}
 
 	paths := swagger.PublishedPaths()
-	if !slices.Contains(paths, "resources/views/docs/swagger.kyse.go") {
-		t.Errorf("expected PublishedPaths to contain resources/views/docs/swagger.kyse.go, got: %v", paths)
+	expectedPaths := []string{
+		"resources/views/docs/swagger.kyse.go",
+		"resources/views/docs/topbar.kyse.go",
+		"resources/views/docs/container.kyse.go",
+		"resources/views/docs/header.kyse.go",
+	}
+	for _, expected := range expectedPaths {
+		if !slices.Contains(paths, expected) {
+			t.Errorf("expected PublishedPaths to contain %q, got: %v", expected, paths)
+		}
 	}
 }
