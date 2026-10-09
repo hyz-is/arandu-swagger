@@ -142,7 +142,7 @@ type Config struct {
 type Theme struct {
 	// Title overrides the HTML document title. When empty, Config.Title is used.
 	Title string
-	// DarkMode enables the modern dark theme matching Fastify and Peráta styling.
+	// DarkMode starts the UI in the dark palette.
 	DarkMode bool
 	// Locale specifies the UI language (e.g. "pt-BR", "en").
 	Locale string
@@ -163,7 +163,9 @@ type Theme struct {
 	MutedColor string
 	// BorderColor overrides borders (default "#27272a" in dark mode).
 	BorderColor string
-	// Logo configures an optional branding logo in the topbar header.
+	// Logo configures an optional branding logo in the topbar header. When nil,
+	// the topbar draws no image, names the documentation by its title, and links
+	// home to "/".
 	Logo *ThemeLogo
 	// BackURL configures the "Voltar para o site" link target in the topbar.
 	// When empty, defaults to ThemeLogo.Href or "/".

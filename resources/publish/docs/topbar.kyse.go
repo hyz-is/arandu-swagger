@@ -15,7 +15,9 @@ type TopbarViewData = swagger.SwaggerViewData
 	<div class="arandu-swagger-topbar-wrapper">
 		<div class="arandu-swagger-topbar-start">
 			<a href="{{ .HomeURLOrDefault() }}" class="arandu-swagger-logo-link" @if(.LogoTarget != "")target="{{ .LogoTarget }}"@endif>
-				<img src="{{ .LogoURLOrDefault() }}" alt="{{ .BrandOrDefault() }}" class="arandu-swagger-logo">
+				@if(.LogoURLOrDefault() != "")
+					<img src="{{ .LogoURLOrDefault() }}" alt="{{ .BrandOrDefault() }}" class="arandu-swagger-logo">
+				@endif
 				<span class="arandu-swagger-title">{{ .BrandOrDefault() }}</span>
 			</a>
 		</div>

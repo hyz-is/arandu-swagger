@@ -285,15 +285,18 @@ func (m *Module) serveUIAction(ctx *fhttp.Context) error {
 	if m.cfg.Theme.Title != "" {
 		title = m.cfg.Theme.Title
 	}
-	brand := "Peráta"
+	// Nothing below names a product, a page or an image the application may not
+	// have: with no logo configured the brand is the documentation title, the
+	// home link is the site root, and no image is drawn.
+	brand := title
 	if m.cfg.Theme.Logo != nil && m.cfg.Theme.Logo.Alt != "" {
 		brand = m.cfg.Theme.Logo.Alt
 	}
-	homeURL := "/workspaces"
+	homeURL := "/"
 	if m.cfg.Theme.Logo != nil && m.cfg.Theme.Logo.Href != "" {
 		homeURL = m.cfg.Theme.Logo.Href
 	}
-	logoURL := "/favicon.svg"
+	logoURL := ""
 	logoAlt := brand
 	logoHref := homeURL
 	logoTarget := ""

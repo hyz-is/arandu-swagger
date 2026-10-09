@@ -97,15 +97,15 @@ func (d SwaggerViewData) BackTextOrDefault() string {
 	return "Back to site"
 }
 
-// LogoURLOrDefault returns the logo URL, defaulting to /favicon.svg.
+// LogoURLOrDefault returns the configured logo URL. It is empty when no logo
+// is configured, because no image path is known to exist in every
+// application; a template draws the logo only when the result is non-empty.
 func (d SwaggerViewData) LogoURLOrDefault() string {
-	if d.LogoURL != "" {
-		return d.LogoURL
-	}
-	return "/favicon.svg"
+	return d.LogoURL
 }
 
-// BrandOrDefault returns the brand name, preferring LogoAlt, then AppName, then Peráta.
+// BrandOrDefault returns the brand name, preferring LogoAlt, then AppName,
+// then the page Title.
 func (d SwaggerViewData) BrandOrDefault() string {
 	if d.LogoAlt != "" {
 		return d.LogoAlt
@@ -113,7 +113,7 @@ func (d SwaggerViewData) BrandOrDefault() string {
 	if d.AppName != "" {
 		return d.AppName
 	}
-	return "Peráta"
+	return d.Title
 }
 
 // Compile-time check that SwaggerViewData satisfies the view.Layout interface.
