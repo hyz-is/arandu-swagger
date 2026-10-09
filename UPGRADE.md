@@ -32,6 +32,77 @@ deprecated. `kyse` is required because the publishable topbar template imports
 The generated document, the routes, the configuration and the four declared
 capabilities are unchanged.
 
+## v0.4.1 — skills only
+
+Written after the fact, on 2026-10-09, with v0.4.3: the release shipped with
+no entry here.
+
+No Go file changed: the package API, the generated document, the routes and
+the configuration are those of v0.4.0. The release changed only
+`.agents/skills/`. It added the `arandu-ecosystem` skill, and it marked
+`swagger-package` with `metadata.audience: app` in its frontmatter, which is
+what `aru skills:sync` reads to copy that one skill into an application whose
+`go.mod` requires this package. An application that runs `aru skills:sync`
+after upgrading receives `swagger-package`; the release, module and security
+procedures stay in this repository.
+
+## v0.4.0 — theming, publishable views, and a different schema dialect
+
+Written after the fact, on 2026-10-09, with v0.4.3: v0.4.0 was tagged on
+2026-09-22 with no entry here, although it changed the generated document and
+the UI route. The facts below are read from `git diff v0.3.1 v0.4.0`.
+
+### The default `jsonSchemaDialect` changed
+
+The document's `jsonSchemaDialect` was
+`https://json-schema.org/draft/2020-12/schema` and is now
+`https://spec.openapis.org/oas/3.1/dialect/base`, the OpenAPI 3.1 base
+dialect. A document generated from identical input therefore differs in that
+one field. A consumer that compared or pinned the old value sets it back
+explicitly:
+
+```go
+swagger.Config{
+	JSONSchemaDialect: "https://json-schema.org/draft/2020-12/schema",
+}
+```
+
+### The UI route tries a view first
+
+The UI endpoint became an action. It renders the view named by
+`Config.ViewName` (else `Config.Theme.ViewName`, else `docs.swagger`) with a
+`SwaggerViewData`, and falls back to the embedded page when the view is not
+registered or fails to render. Three consequences are observable:
+
+- An application with a view named `docs.swagger` serves that view at the UI
+  path, whatever the view was written for.
+- The `Content-Security-Policy` and `Referrer-Policy` headers documented for
+  the UI are set by the embedded page only. A rendered view answers with the
+  headers of the application's renderer and middleware.
+- A request that sends `Accept: application/vnd.arandu.view+json` receives
+  the view name and the `SwaggerViewData` as JSON instead of markup, as every
+  `ctx.View` does.
+
+The module implements `foundation.Publishable` and offers four views,
+`resources/views/docs/{swagger,topbar,container,header}.kyse.go`. Until v0.4.3,
+the data handed to them named a product, a home path and a logo when no
+`Theme.Logo` was configured; see the v0.4.3 entry.
+
+### The page is themed by default
+
+`Config` gained `Locale`, `Translations`, `ViewName`, `JSONSchemaDialect` and
+`Theme` (with `ThemeLogo` and `HTMXConfig`). `Config.HasTheme` reports true for
+the zero `Theme`, because the theme toggle is on unless
+`Theme.DisableThemeToggle` is set. So with no theming configured the module
+registers `GET <UIPath>/theme.css`, and the embedded page links it and draws a
+topbar with a "Back to site" link to `/` and a light/dark toggle. Setting
+`Theme.CustomJS` registers `GET <UIPath>/theme.js` as well. The UI
+content-security policy's `img-src` gained `https:`, so a logo may be an
+absolute HTTPS URL.
+
+`New` now rejects a `SpecPath` equal to `<UIPath>/theme.css` or
+`<UIPath>/theme.js`, and a `Theme.Logo` whose `URL` is blank.
+
 ## v0.3.1
 
 ### The Framework floor is 0.47
