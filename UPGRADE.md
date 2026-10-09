@@ -1,6 +1,6 @@
 # Upgrade Guide
 
-## Unreleased
+## v0.3.1
 
 ### The Framework floor is 0.47
 
