@@ -2,6 +2,8 @@
 name: swagger-package
 description: Install, wire, configure, and use github.com/hyz-is/arandu-swagger in an Arandu application. Use for package installation, bootstrap wiring, documenting routes, schemas, responses, security, filters, UI/spec endpoints, static generation, or troubleshooting missing documentation.
 license: MIT
+metadata:
+  audience: app
 ---
 
 # Using Arandu Swagger

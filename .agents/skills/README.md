@@ -17,6 +17,11 @@ module so a caller sees the explicit bootstrap wiring, instance registry, native
 Hesape schema usage, endpoint controls, and programmatic generation API instead
 of inventing a provider or discovery mechanism.
 
+Its frontmatter says so, under `metadata`, with `audience: app`. That line is
+what `aru skills:sync` reads to copy the skill into an application whose
+`go.mod` requires this package, and no other skill here carries it: an
+application that received the release procedure would follow it.
+
 ## Why these exist
 
 Arandu Swagger sits beside the framework's route declaration surface without
