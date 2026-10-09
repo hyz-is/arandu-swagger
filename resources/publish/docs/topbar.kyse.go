@@ -14,7 +14,13 @@ type TopbarViewData = swagger.SwaggerViewData
 <header class="arandu-swagger-topbar">
 	<div class="arandu-swagger-topbar-wrapper">
 		<div class="arandu-swagger-topbar-start">
-			<a href="{{ .HomeURLOrDefault() }}" class="arandu-swagger-logo-link" @if(.LogoTarget != "")target="{{ .LogoTarget }}"@endif>
+			<a
+				href="{{ .HomeURLOrDefault() }}"
+				class="arandu-swagger-logo-link"
+				@if(.LogoTarget != "")
+					target="{{ .LogoTarget }}"
+				@endif
+			>
 				@if(.LogoURLOrDefault() != "")
 					<img src="{{ .LogoURLOrDefault() }}" alt="{{ .BrandOrDefault() }}" class="arandu-swagger-logo">
 				@endif
@@ -23,7 +29,13 @@ type TopbarViewData = swagger.SwaggerViewData
 		</div>
 		<div class="arandu-swagger-topbar-end">
 			@if(.BackURLOrDefault() != "")
-				<a href="{{ .BackURLOrDefault() }}" class="arandu-swagger-back-link" @if(.BackTarget != "")target="{{ .BackTarget }}"@endif>
+				<a
+					href="{{ .BackURLOrDefault() }}"
+					class="arandu-swagger-back-link"
+					@if(.BackTarget != "")
+						target="{{ .BackTarget }}"
+					@endif
+				>
 					{!! icons.ArrowLeft(icons.Props{}) !!}
 					<span>{{ .BackTextOrDefault() }}</span>
 				</a>
