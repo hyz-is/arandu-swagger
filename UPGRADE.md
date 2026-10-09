@@ -1,5 +1,56 @@
 # Upgrade Guide
 
+## v0.4.3 — the documentation page names no product by default
+
+Nothing in the package API moved: `apidiff` against `v0.4.2` reports no change
+at all. What moved is what the UI route hands the `docs.swagger` view when
+`Config.Theme.Logo` is nil. Since v0.4.0 it handed the defaults of the
+application the theming was first written for, and every other application
+showed them on its documentation page:
+
+| `SwaggerViewData` field | was | is |
+|---|---|---|
+| `AppName` (the topbar brand) | `Peráta` | `Theme.Title`, else `Config.Title` |
+| `HomeURL`, `LogoHref` | `/workspaces` | `/` |
+| `LogoURL` | `/favicon.svg` | empty: no logo is drawn |
+
+The two helpers that carried the same defaults follow them:
+`BrandOrDefault` falls back to the page `Title` instead of `Peráta`, and
+`LogoURLOrDefault` returns the empty string instead of `/favicon.svg`. The
+published topbar draws the logo image only when `LogoURLOrDefault` is not
+empty, and the published container's class is now `arandu-swagger-container`
+instead of `perata-swagger-container`.
+
+A configured `Theme.Logo` reaches the view exactly as before, so an
+application that sets it sees no difference. The embedded page, served when
+the view is not registered, already drew no logo without one and is unchanged.
+
+An application that relied on the old defaults keeps them by naming them:
+
+```go
+Theme: swagger.Theme{
+	Logo: &swagger.ThemeLogo{
+		URL:  "/favicon.svg",
+		Href: "/workspaces",
+		Alt:  "Peráta",
+	},
+},
+```
+
+`Logo.URL` is required whenever `Logo` is set; a brand without an image is
+`Theme.Title`.
+
+A project that published the views keeps its own copies, and they are what it
+renders. A copied topbar still draws `<img src="{{ .LogoURLOrDefault() }}">`
+unconditionally, so with no `Theme.Logo` it now draws an image with an empty
+source. Set `Theme.Logo`, or publish the views again with `aru vendor:publish`
+and carry over any edits; a stylesheet that targeted
+`.perata-swagger-container` targets `.arandu-swagger-container` after that.
+
+```bash
+go get github.com/hyz-is/arandu-swagger@v0.4.3
+```
+
 ## v0.4.2 — the Framework floor is 0.55
 
 Nothing in this package's own API moved: `apidiff` against `v0.4.1` reports no
