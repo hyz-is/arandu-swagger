@@ -10,7 +10,7 @@ import (
 type ContainerViewData = swagger.SwaggerViewData
 @endgo
 
-<div id="swagger-ui" class="perata-swagger-container" hx-boost="false"></div>
+<div id="swagger-ui" class="arandu-swagger-container" hx-boost="false"></div>
 
 <link rel="stylesheet" href="{{ .UIPath }}/assets/5.32.14/swagger-ui.css">
 <link rel="stylesheet" href="{{ .UIPath }}/theme.css">
