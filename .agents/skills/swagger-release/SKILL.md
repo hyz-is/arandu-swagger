@@ -36,8 +36,11 @@ migrations = false
 
 Embedded build-time assets do not imply runtime filesystem access, and serving
 HTTP does not imply outbound network access. Keep direct dependencies limited to
-the pinned Arandu `framework` and `hesape` modules unless a reviewed feature
-cannot be implemented with the standard library or existing ecosystem.
+the pinned Arandu `framework` and `hesape` modules, plus `kyse`, which only the
+publishable templates under `resources/publish/` import behind the `kyse` build
+tag, unless a reviewed feature cannot be implemented with the standard library
+or existing ecosystem. The `framework` floor in `arandu.mod.toml` names the
+minor that `go.mod` requires.
 
 ## Third-party assets
 
