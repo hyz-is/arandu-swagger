@@ -1,5 +1,93 @@
 # Upgrade Guide
 
+## v0.4.4 — the published views write their targets, keep the page policy, and follow the locale
+
+`apidiff` against `v0.4.3` reports two compatible additions and nothing else:
+`SwaggerViewData.Translations` and `SwaggerViewData.Translate`. What moved is
+what the UI route answers and what the published views draw.
+
+### The view answers with the page's security headers
+
+Since v0.4.0 only the embedded page set the headers `docs/assets-csp.md`
+documents; a `docs.swagger` view answered with whatever the application's
+middleware sent. The UI route now sets them before either page is drawn, so
+the view answers with the same ones:
+
+```text
+Content-Security-Policy: default-src 'none'; style-src 'self'; style-src-attr 'unsafe-inline'; script-src 'self'; img-src 'self' data: https:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'
+Referrer-Policy: no-referrer
+Cache-Control: no-store
+X-Content-Type-Options: nosniff
+```
+
+The handler sets them, so they replace a policy an application middleware set
+before calling it. The published `docs.swagger` page, which includes the
+topbar and the container, loads only same-origin files and renders unchanged.
+A view an application changed to extend its own layout now runs under this
+policy too: that layout's scripts, stylesheets and fonts must be same-origin
+files, an inline `<script>` or `on…=` handler does not run, and a form in it
+cannot submit. The `img-src` value is not new: the code has sent `https:`
+since v0.4.0, and the document now says so.
+
+### The topbar writes its link targets
+
+The published topbar wrote `@if(.LogoTarget != "")target="…"@endif` inside
+the logo and back links. A kyse directive takes a whole line, so that text
+reached the browser as written and `Theme.Logo.Target` and `Theme.BackTarget`
+never became attributes. The links now open across lines, each conditional
+attribute in its own `@if` block:
+
+```html
+<a
+	href="{{ .HomeURLOrDefault() }}"
+	class="arandu-swagger-logo-link"
+	@if(.LogoTarget != "")
+		target="{{ .LogoTarget }}"
+	@endif
+>
+```
+
+### The header and the toggle label follow the locale
+
+The published header drew its breadcrumb, eyebrow and Authorize button in
+fixed Portuguese, and its breadcrumb read "Workspace"; the topbar's toggle
+label was Portuguese as well. They now go through `SwaggerViewData.Translate`,
+which reads `Config.Locale` and `Config.Translations`: English by default, the
+package's Portuguese for `pt` and `pt-BR`, and an entry in
+`Config.Translations` before either.
+
+| key | `en` (default) | `pt-BR` |
+|---|---|---|
+| `Home` | Home | Início |
+| `API documentation` | API documentation | Documentação da API |
+| `Developer integration` | Developer integration | Integração e desenvolvedor |
+| `Authorize` | Authorize | Autorizar |
+| `Toggle theme` | Toggle theme | Alternar tema |
+
+The eyebrow is uppercased by the `uppercase` class instead of being written in
+capitals. The header's Authorize button lost its inline `onclick`, which the
+policy above refuses to run; it carries `data-arandu-swagger-authorize`, and
+the initializer binds it.
+
+The embedded page's toggle label uses the same lookup. It was Portuguese for
+any locale starting with `pt`; it is now Portuguese for `pt` and `pt-BR`, the
+locales the Swagger UI dictionary already answered, so `pt-PT` draws
+"Toggle theme" unless `Config.Translations` names it.
+
+### A project that published the views
+
+A project renders its own copies, and none of this reaches them until they
+are published again. Under the new headers, a copied header's Authorize button
+no longer opens the dialog, because its `onclick` does not run, and a copied
+topbar keeps writing the `@if` text into its links. Publish the views again
+with `aru vendor:publish` and carry over any edits, or make the same changes
+by hand: the multi-line links above, `data-arandu-swagger-authorize` in place
+of the `onclick`, and `{{ .Translate("…") }}` for each fixed string.
+
+```bash
+go get github.com/hyz-is/arandu-swagger@v0.4.4
+```
+
 ## v0.4.3 — the documentation page names no product by default
 
 Nothing in the package API moved: `apidiff` against `v0.4.2` reports no change
@@ -129,7 +217,8 @@ registered or fails to render. Three consequences are observable:
   path, whatever the view was written for.
 - The `Content-Security-Policy` and `Referrer-Policy` headers documented for
   the UI are set by the embedded page only. A rendered view answers with the
-  headers of the application's renderer and middleware.
+  headers of the application's renderer and middleware, until v0.4.4; see
+  that entry.
 - A request that sends `Accept: application/vnd.arandu.view+json` receives
   the view name and the `SwaggerViewData` as JSON instead of markup, as every
   `ctx.View` does.
