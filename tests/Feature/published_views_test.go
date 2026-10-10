@@ -22,11 +22,11 @@ import (
 	// The published views, compiled by `aru view:build`. Importing the package
 	// registers them, so a router given a renderer draws the page through them
 	// exactly as an application that published them does.
-	_ "github.com/hyz-is/arandu-swagger/tests/Feature/compiledviews/docs"
+	_ "github.com/hyz-is/arandu-swagger/tests/Feature/internal/compiledviews/docs"
 )
 
 // compiledViewSources is the SHA-256 of each published view as it was when the
-// code under compiledviews/docs was compiled from it.
+// code under internal/compiledviews/docs was compiled from it.
 //
 // The views are templates, and a template is only tested by rendering it, which
 // needs the compiler that lives in the aru command. That code is therefore
@@ -39,7 +39,7 @@ import (
 //
 //	cp resources/publish/docs/*.kyse.go <app>/resources/views/docs/
 //	(cd <app> && aru view:build)
-//	cp <app>/storage/framework/views/docs/*.go tests/Feature/compiledviews/docs/
+//	cp <app>/storage/framework/views/docs/*.go tests/Feature/internal/compiledviews/docs/
 //	shasum -a 256 resources/publish/docs/*.kyse.go
 //
 // and write the new sums here.
@@ -69,11 +69,11 @@ func TestCompiledViewsMatchThePublishedSources(t *testing.T) {
 			sum := sha256.Sum256(source)
 			want, recorded := compiledViewSources[base]
 			if !recorded {
-				t.Errorf("%s is published but has no compiled copy under compiledviews/docs", name)
+				t.Errorf("%s is published but has no compiled copy under internal/compiledviews/docs", name)
 				return nil
 			}
 			if got := hex.EncodeToString(sum[:]); got != want {
-				t.Errorf("%s changed since compiledviews/docs was compiled from it (sha256 %s, compiled from %s); compile the views again as compiledViewSources describes", name, got, want)
+				t.Errorf("%s changed since internal/compiledviews/docs was compiled from it (sha256 %s, compiled from %s); compile the views again as compiledViewSources describes", name, got, want)
 			}
 			return nil
 		})
