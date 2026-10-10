@@ -225,6 +225,21 @@ func Initializer(opts InitializerOptions) []byte {
 	}
 	script.WriteString("    });\n")
 
+	// A button the page draws outside Swagger UI opens its authorization
+	// dialog. It is bound here rather than with an onclick attribute, which
+	// the page's script-src 'self' policy refuses to run.
+	script.WriteString(`
+    var authorizers = document.querySelectorAll("[data-arandu-swagger-authorize]");
+    for (var a = 0; a < authorizers.length; a++) {
+      if (authorizers[a].getAttribute("data-authorize-bound")) continue;
+      authorizers[a].setAttribute("data-authorize-bound", "true");
+      authorizers[a].addEventListener("click", function() {
+        var authorize = document.querySelector(".swagger-ui .btn.authorize");
+        if (authorize) authorize.click();
+      });
+    }
+`)
+
 	translations := ResolveTranslations(opts.Locale, opts.Translations)
 	if len(translations) > 0 {
 		encodedTranslations, _ := json.Marshal(translations)

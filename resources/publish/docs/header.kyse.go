@@ -57,7 +57,7 @@ type HeaderViewData = swagger.SwaggerViewData
 				{!! icons.ArrowUpRight(icons.Props{}) !!}
 			</a>
 		@endif
-		<button type="button" class="btn" onclick="document.querySelector('.swagger-ui .btn.authorize')?.click()">
+		<button type="button" class="btn" data-arandu-swagger-authorize>
 			{!! icons.Lock(icons.Props{}) !!}
 			<span>Autorizar</span>
 		</button>

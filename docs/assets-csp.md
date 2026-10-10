@@ -31,20 +31,39 @@ to its default remote validator.
 
 ## Content Security Policy
 
-The HTML contains no inline script or style. The module sends:
+The HTML contains no inline script, inline event handler or style block. The
+UI route sends the same headers whichever page answers it, the `docs.swagger`
+view an application published or the embedded page served when no view is
+registered:
 
 ```text
-default-src 'none'; style-src 'self'; style-src-attr 'unsafe-inline'; script-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'
+Cache-Control: no-store
+X-Content-Type-Options: nosniff
+Referrer-Policy: no-referrer
+```
+
+and this policy:
+
+```text
+default-src 'none'; style-src 'self'; style-src-attr 'unsafe-inline'; script-src 'self'; img-src 'self' data: https:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'
 ```
 
 `script-src`, `style-src`, and `connect-src` require the same origin. Inline
 scripts and inline style blocks remain forbidden. Swagger UI 5.x applies style
 attributes at runtime, so the policy contains the narrow CSP3
 `style-src-attr 'unsafe-inline'` exception required for the vendored UI to render;
-it does not widen `script-src` or `style-src`. `frame-ancestors 'none'` prevents framing. `base-uri` and
+it does not widen `script-src` or `style-src`. `img-src` admits `https:` so a
+`Theme.Logo` may be an absolute HTTPS URL. `frame-ancestors 'none'` prevents framing. `base-uri` and
 `form-action` are disabled. Try it out therefore works only against a
 same-origin server under the built-in policy. A cross-origin API requires an
 explicit application or proxy decision about both CSP and CORS.
+
+The policy covers the whole page the view draws. A published view changed to
+extend an application layout therefore answers under it too: that layout's
+scripts, stylesheets and fonts must be same-origin files, and a form in it
+cannot submit, because `form-action` is `'none'`. The published header's
+Authorize button carries `data-arandu-swagger-authorize` and is bound by the
+external initializer for the same reason.
 
 An application middleware may add stricter headers. If it replaces this CSP,
 it must still allow the versioned same-origin stylesheet, bundle, initializer,

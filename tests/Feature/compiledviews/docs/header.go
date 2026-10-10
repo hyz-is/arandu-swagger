@@ -285,7 +285,7 @@ func renderDocsHeader(kyse__w kyse__io.Writer, kyse__data any) error {
 		}
 	}
 	if kyse__err == nil {
-		_, kyse__err = kyse__io.WriteString(kyse__w, "\t\t<button type=\"button\" class=\"btn\" onclick=\"document.querySelector('.swagger-ui .btn.authorize')?.click()\">\n")
+		_, kyse__err = kyse__io.WriteString(kyse__w, "\t\t<button type=\"button\" class=\"btn\" data-arandu-swagger-authorize>\n")
 	}
 	if kyse__err == nil {
 		_, kyse__err = kyse__io.WriteString(kyse__w, "\t\t\t")

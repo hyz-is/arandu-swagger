@@ -1,12 +1,17 @@
 package feature_test
 
 import (
+	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"io/fs"
 	"net/http"
+	"net/http/httptest"
+	"os"
 	"path"
+	"path/filepath"
 	"regexp"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -40,7 +45,7 @@ import (
 // and write the new sums here.
 var compiledViewSources = map[string]string{
 	"container.kyse.go": "b13a78e0732c3f396cb6dfaac565504deb5199fd55dac51f5fffd44b7c987977",
-	"header.kyse.go":    "9fabc1bae7aff3ffc3e433bfd963164ab26fbdb9ea1495ceccd182e615cfee28",
+	"header.kyse.go":    "051ace7a339119039fceac6d5cd333283713659acab581a44282bccb7f8ca052",
 	"swagger.kyse.go":   "3d88937ceab17fc78d6acd7f95df93ff10c6fad777522e20aace4108ea6a60a3",
 	"topbar.kyse.go":    "19772ae7729b6e1d534030055ce5a25011842a0b993fd9b9d5db4795d78e584f",
 }
@@ -166,4 +171,93 @@ func TestPublishedTopbarWritesNoTargetWhenNoneIsGiven(t *testing.T) {
 	if got, want := openingTag(t, body, "arandu-swagger-back-link"), `<a href="/" class="arandu-swagger-back-link" target="_self" >`; got != want {
 		t.Errorf("back link = %s, want %s", got, want)
 	}
+}
+
+// documentedPolicy returns the content security policy docs/assets-csp.md
+// states, which is the one the UI route promises to send.
+func documentedPolicy(t *testing.T) string {
+	t.Helper()
+	_, filename, _, ok := runtime.Caller(0)
+	if !ok {
+		t.Fatal("cannot locate the test file")
+	}
+	doc, err := os.ReadFile(filepath.Join(filepath.Dir(filename), "..", "..", "docs", "assets-csp.md"))
+	if err != nil {
+		t.Fatalf("read docs/assets-csp.md: %v", err)
+	}
+	for _, line := range strings.Split(string(doc), "\n") {
+		if strings.HasPrefix(line, "default-src ") {
+			return line
+		}
+	}
+	t.Fatal("docs/assets-csp.md states no policy")
+	return ""
+}
+
+func TestUIRouteSendsTheDocumentedHeadersFromTheViewAndTheEmbeddedPage(t *testing.T) {
+	t.Parallel()
+
+	want := map[string]string{
+		"Content-Security-Policy": documentedPolicy(t),
+		"Referrer-Policy":         "no-referrer",
+		"Cache-Control":           "no-store",
+		"X-Content-Type-Options":  "nosniff",
+		"Content-Type":            "text/html; charset=utf-8",
+	}
+
+	viewRouter := mountRendered(t, enabledConfig())
+	renderedPage(t, viewRouter, "/docs")
+	embeddedRouter, _ := mount(t, enabledConfig())
+
+	for name, router := range map[string]*fhttp.Router{"the docs.swagger view": viewRouter, "the embedded page": embeddedRouter} {
+		response := request(router, "/docs")
+		if response.Code != http.StatusOK {
+			t.Fatalf("%s answered %d", name, response.Code)
+		}
+		for header, value := range want {
+			if got := response.Header().Get(header); got != value {
+				t.Errorf("%s: %s = %q, want %q", name, header, got, value)
+			}
+		}
+	}
+}
+
+var inlineHandler = regexp.MustCompile(`(?i)\son[a-z]+\s*=`)
+
+func TestPublishedViewsRunNoScriptThePolicyRefuses(t *testing.T) {
+	t.Parallel()
+
+	data := swagger.SwaggerViewData{UIPath: "/docs", SpecPath: "/docs/openapi.json", Locale: "en", BackURL: "/"}
+	data.Title = "Example API"
+	pages := map[string]string{"docs.swagger": renderedPage(t, mountRendered(t, enabledConfig()), "/docs")}
+	pages["docs.header"] = renderView(t, "docs.header", data)
+
+	for name, body := range pages {
+		if match := inlineHandler.FindString(body); match != "" {
+			t.Errorf("%s writes an inline event handler (%q), which script-src 'self' refuses:\n%s", name, match, body)
+		}
+		if strings.Contains(body, "<script>") || strings.Contains(body, "<style") {
+			t.Errorf("%s writes an inline script or style block:\n%s", name, body)
+		}
+	}
+	if !strings.Contains(pages["docs.header"], "data-arandu-swagger-authorize") {
+		t.Errorf("the header's Authorize button carries no data-arandu-swagger-authorize:\n%s", pages["docs.header"])
+	}
+
+	router, _ := mount(t, enabledConfig())
+	initializer := request(router, "/docs/swagger-initializer.js").Body.String()
+	if !strings.Contains(initializer, `document.querySelectorAll("[data-arandu-swagger-authorize]")`) {
+		t.Errorf("the initializer does not bind the header's Authorize button:\n%s", initializer)
+	}
+}
+
+// renderView draws one published view with data, as a layout that includes it
+// would.
+func renderView(t *testing.T, name string, data swagger.SwaggerViewData) string {
+	t.Helper()
+	response := httptest.NewRecorder()
+	if err := view.NewRenderer().Render(context.Background(), response, http.StatusOK, name, data); err != nil {
+		t.Fatalf("render %s: %v", name, err)
+	}
+	return response.Body.String()
 }
