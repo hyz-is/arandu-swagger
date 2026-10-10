@@ -41,7 +41,7 @@ type TopbarViewData = swagger.SwaggerViewData
 				</a>
 			@endif
 			@if(!.DisableThemeToggle)
-				<button type="button" class="arandu-swagger-theme-toggle" aria-label="Alternar tema" title="Alternar tema">
+				<button type="button" class="arandu-swagger-theme-toggle" aria-label="{{ .Translate("Toggle theme") }}" title="{{ .Translate("Toggle theme") }}">
 					<span class="arandu-swagger-glyph-light" aria-hidden="true">{!! icons.Sun(icons.Props{}) !!}</span>
 					<span class="arandu-swagger-glyph-dark" aria-hidden="true">{!! icons.Moon(icons.Props{}) !!}</span>
 				</button>

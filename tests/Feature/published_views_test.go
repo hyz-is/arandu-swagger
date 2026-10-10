@@ -45,9 +45,9 @@ import (
 // and write the new sums here.
 var compiledViewSources = map[string]string{
 	"container.kyse.go": "b13a78e0732c3f396cb6dfaac565504deb5199fd55dac51f5fffd44b7c987977",
-	"header.kyse.go":    "051ace7a339119039fceac6d5cd333283713659acab581a44282bccb7f8ca052",
+	"header.kyse.go":    "eb6c99d28bd22bebac86df016de9bad8b398af953af05d8b38a6d6ac5e8f9ea9",
 	"swagger.kyse.go":   "3d88937ceab17fc78d6acd7f95df93ff10c6fad777522e20aace4108ea6a60a3",
-	"topbar.kyse.go":    "19772ae7729b6e1d534030055ce5a25011842a0b993fd9b9d5db4795d78e584f",
+	"topbar.kyse.go":    "b94ad1044d0fb43ee78a6f67e43fbf57657fa211d5acbe083fcac261a25726f5",
 }
 
 func TestCompiledViewsMatchThePublishedSources(t *testing.T) {
@@ -260,4 +260,90 @@ func renderView(t *testing.T, name string, data swagger.SwaggerViewData) string 
 		t.Fatalf("render %s: %v", name, err)
 	}
 	return response.Body.String()
+}
+
+// headerFor renders the published header with the data the UI route hands
+// the docs.swagger view under config.
+func headerFor(t *testing.T, config swagger.Config) string {
+	t.Helper()
+	router, _ := mount(t, config)
+	rendered, _ := requestViewData(t, router, "/docs")
+	return renderView(t, "docs.header", rendered.Data)
+}
+
+func TestPublishedHeaderFollowsTheLocale(t *testing.T) {
+	t.Parallel()
+
+	portuguese := enabledConfig()
+	portuguese.Locale = "pt-BR"
+	overridden := enabledConfig()
+	overridden.Translations = map[string]string{"Home": "Dashboard", "Authorize": "Sign in"}
+
+	for _, tc := range []struct {
+		name   string
+		config swagger.Config
+		want   []string
+		refuse []string
+	}{
+		{
+			name:   "default English",
+			config: enabledConfig(),
+			want:   []string{"<span>Home</span>", "<span>API documentation</span>", ">Developer integration</p>", "<span>Authorize</span>"},
+			refuse: []string{"Workspace", "Documentação", "INTEGRAÇÃO", "Integração", "Autorizar"},
+		},
+		{
+			name:   "pt-BR",
+			config: portuguese,
+			want:   []string{"<span>Início</span>", "<span>Documentação da API</span>", ">Integração e desenvolvedor</p>", "<span>Autorizar</span>"},
+			refuse: []string{"Workspace", "<span>Home</span>", "API documentation", "<span>Authorize</span>"},
+		},
+		{
+			name:   "Config.Translations",
+			config: overridden,
+			want:   []string{"<span>Dashboard</span>", "<span>Sign in</span>", "<span>API documentation</span>"},
+			refuse: []string{"Workspace", "<span>Home</span>", "<span>Authorize</span>"},
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			body := headerFor(t, tc.config)
+			assertNoTemplateSyntax(t, body)
+			for _, fragment := range tc.want {
+				if !strings.Contains(body, fragment) {
+					t.Errorf("the header does not draw %q:\n%s", fragment, body)
+				}
+			}
+			for _, fragment := range tc.refuse {
+				if strings.Contains(body, fragment) {
+					t.Errorf("the header draws %q:\n%s", fragment, body)
+				}
+			}
+		})
+	}
+}
+
+func TestThemeToggleLabelFollowsTheLocaleOnBothPages(t *testing.T) {
+	t.Parallel()
+
+	portuguese := enabledConfig()
+	portuguese.Locale = "pt-BR"
+	for _, tc := range []struct {
+		name   string
+		config swagger.Config
+		label  string
+	}{
+		{"default English", enabledConfig(), "Toggle theme"},
+		{"pt-BR", portuguese, "Alternar tema"},
+	} {
+		want := `aria-label="` + tc.label + `" title="` + tc.label + `"`
+		viewBody := renderedPage(t, mountRendered(t, tc.config), "/docs")
+		if got := openingTag(t, viewBody, "arandu-swagger-theme-toggle"); !strings.Contains(got, want) {
+			t.Errorf("%s: the view's toggle = %s, want %s", tc.name, got, want)
+		}
+		embedded, _ := mount(t, tc.config)
+		embeddedBody := request(embedded, "/docs").Body.String()
+		if got := openingTag(t, embeddedBody, "arandu-swagger-theme-toggle"); !strings.Contains(got, want) {
+			t.Errorf("%s: the embedded page's toggle = %s, want %s", tc.name, got, want)
+		}
+	}
 }

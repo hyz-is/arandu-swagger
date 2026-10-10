@@ -71,7 +71,15 @@ func renderDocsHeader(kyse__w kyse__io.Writer, kyse__data any) error {
 		_, kyse__err = kyse__io.WriteString(kyse__w, "\n")
 	}
 	if kyse__err == nil {
-		_, kyse__err = kyse__io.WriteString(kyse__w, "\t\t\t<span>Workspace</span>\n")
+		_, kyse__err = kyse__io.WriteString(kyse__w, "\t\t\t<span>")
+	}
+	if kyse__err == nil {
+//line resources/views/docs/header.kyse.go:18
+		_, kyse__err = kyse__io.WriteString(kyse__w, kyse__template.HTMLEscapeString(kyse__view.Text(kyse__d.Translate("Home"))))
+//line storage/framework/views/docs/header.go:80
+	}
+	if kyse__err == nil {
+		_, kyse__err = kyse__io.WriteString(kyse__w, "</span>\n")
 	}
 	if kyse__err == nil {
 		_, kyse__err = kyse__io.WriteString(kyse__w, "\t\t</a>\n")
@@ -88,14 +96,22 @@ func renderDocsHeader(kyse__w kyse__io.Writer, kyse__data any) error {
 	if kyse__err == nil {
 //line resources/views/docs/header.kyse.go:22
 		var kyse__v3 kyse__template.HTML = icons.BookOpen(icons.Props{})
-//line storage/framework/views/docs/header.go:92
+//line storage/framework/views/docs/header.go:100
 		_, kyse__err = kyse__io.WriteString(kyse__w, string(kyse__v3))
 	}
 	if kyse__err == nil {
 		_, kyse__err = kyse__io.WriteString(kyse__w, "\n")
 	}
 	if kyse__err == nil {
-		_, kyse__err = kyse__io.WriteString(kyse__w, "\t\t\t<span>Documentação da API</span>\n")
+		_, kyse__err = kyse__io.WriteString(kyse__w, "\t\t\t<span>")
+	}
+	if kyse__err == nil {
+//line resources/views/docs/header.kyse.go:23
+		_, kyse__err = kyse__io.WriteString(kyse__w, kyse__template.HTMLEscapeString(kyse__view.Text(kyse__d.Translate("API documentation"))))
+//line storage/framework/views/docs/header.go:112
+	}
+	if kyse__err == nil {
+		_, kyse__err = kyse__io.WriteString(kyse__w, "</span>\n")
 	}
 	if kyse__err == nil {
 		_, kyse__err = kyse__io.WriteString(kyse__w, "\t\t</span>\n")
@@ -117,7 +133,7 @@ func renderDocsHeader(kyse__w kyse__io.Writer, kyse__data any) error {
 	}
 //line resources/views/docs/header.kyse.go:30
 	if kyse__d.Version != "" {
-//line storage/framework/views/docs/header.go:121
+//line storage/framework/views/docs/header.go:137
 		if kyse__err == nil {
 			_, kyse__err = kyse__io.WriteString(kyse__w, "\t\t\t<span class=\"badge border border-primary/30 bg-primary/10 text-primary text-xs px-2.5 py-0.5 rounded-md font-medium\">\n")
 		}
@@ -127,7 +143,7 @@ func renderDocsHeader(kyse__w kyse__io.Writer, kyse__data any) error {
 		if kyse__err == nil {
 //line resources/views/docs/header.kyse.go:32
 			_, kyse__err = kyse__io.WriteString(kyse__w, kyse__template.HTMLEscapeString(kyse__view.Text(kyse__d.Version)))
-//line storage/framework/views/docs/header.go:131
+//line storage/framework/views/docs/header.go:147
 		}
 		if kyse__err == nil {
 			_, kyse__err = kyse__io.WriteString(kyse__w, "\n")
@@ -152,7 +168,15 @@ func renderDocsHeader(kyse__w kyse__io.Writer, kyse__data any) error {
 		_, kyse__err = kyse__io.WriteString(kyse__w, "\t<div>\n")
 	}
 	if kyse__err == nil {
-		_, kyse__err = kyse__io.WriteString(kyse__w, "\t\t<p class=\"onboarding-eyebrow\">INTEGRAÇÃO E DESENVOLVEDOR</p>\n")
+		_, kyse__err = kyse__io.WriteString(kyse__w, "\t\t<p class=\"onboarding-eyebrow uppercase\">")
+	}
+	if kyse__err == nil {
+//line resources/views/docs/header.kyse.go:40
+		_, kyse__err = kyse__io.WriteString(kyse__w, kyse__template.HTMLEscapeString(kyse__view.Text(kyse__d.Translate("Developer integration"))))
+//line storage/framework/views/docs/header.go:177
+	}
+	if kyse__err == nil {
+		_, kyse__err = kyse__io.WriteString(kyse__w, "</p>\n")
 	}
 	if kyse__err == nil {
 		_, kyse__err = kyse__io.WriteString(kyse__w, "\t\t<h1>")
@@ -160,21 +184,21 @@ func renderDocsHeader(kyse__w kyse__io.Writer, kyse__data any) error {
 	if kyse__err == nil {
 //line resources/views/docs/header.kyse.go:41
 		_, kyse__err = kyse__io.WriteString(kyse__w, kyse__template.HTMLEscapeString(kyse__view.Text(kyse__d.Title)))
-//line storage/framework/views/docs/header.go:164
+//line storage/framework/views/docs/header.go:188
 	}
 	if kyse__err == nil {
 		_, kyse__err = kyse__io.WriteString(kyse__w, "</h1>\n")
 	}
 //line resources/views/docs/header.kyse.go:42
 	if kyse__d.Description != "" {
-//line storage/framework/views/docs/header.go:171
+//line storage/framework/views/docs/header.go:195
 		if kyse__err == nil {
 			_, kyse__err = kyse__io.WriteString(kyse__w, "\t\t\t<p class=\"max-w-3xl text-sm text-muted-foreground mt-1\">")
 		}
 		if kyse__err == nil {
 //line resources/views/docs/header.kyse.go:43
 			_, kyse__err = kyse__io.WriteString(kyse__w, kyse__template.HTMLEscapeString(kyse__view.Text(kyse__d.Description)))
-//line storage/framework/views/docs/header.go:178
+//line storage/framework/views/docs/header.go:202
 		}
 		if kyse__err == nil {
 			_, kyse__err = kyse__io.WriteString(kyse__w, "</p>\n")
@@ -188,7 +212,7 @@ func renderDocsHeader(kyse__w kyse__io.Writer, kyse__data any) error {
 	}
 //line resources/views/docs/header.kyse.go:47
 	if kyse__d.BackURLOrDefault() != "" {
-//line storage/framework/views/docs/header.go:192
+//line storage/framework/views/docs/header.go:216
 		if kyse__err == nil {
 			_, kyse__err = kyse__io.WriteString(kyse__w, "\t\t\t<a class=\"btn\" href=\"")
 		}
@@ -196,7 +220,7 @@ func renderDocsHeader(kyse__w kyse__io.Writer, kyse__data any) error {
 			var kyse__v4 string
 //line resources/views/docs/header.kyse.go:48
 			kyse__v4, kyse__err = kyse__view.TextURL(kyse__d.BackURLOrDefault())
-//line storage/framework/views/docs/header.go:200
+//line storage/framework/views/docs/header.go:224
 			if kyse__err != nil {
 				kyse__err = kyse__fmt.Errorf("%s: %w", "resources/views/docs/header.kyse.go:48", kyse__err)
 			} else {
@@ -212,7 +236,7 @@ func renderDocsHeader(kyse__w kyse__io.Writer, kyse__data any) error {
 		if kyse__err == nil {
 //line resources/views/docs/header.kyse.go:49
 			var kyse__v5 kyse__template.HTML = icons.ArrowLeft(icons.Props{})
-//line storage/framework/views/docs/header.go:216
+//line storage/framework/views/docs/header.go:240
 			_, kyse__err = kyse__io.WriteString(kyse__w, string(kyse__v5))
 		}
 		if kyse__err == nil {
@@ -224,7 +248,7 @@ func renderDocsHeader(kyse__w kyse__io.Writer, kyse__data any) error {
 		if kyse__err == nil {
 //line resources/views/docs/header.kyse.go:50
 			_, kyse__err = kyse__io.WriteString(kyse__w, kyse__template.HTMLEscapeString(kyse__view.Text(kyse__d.BackTextOrDefault())))
-//line storage/framework/views/docs/header.go:228
+//line storage/framework/views/docs/header.go:252
 		}
 		if kyse__err == nil {
 			_, kyse__err = kyse__io.WriteString(kyse__w, "</span>\n")
@@ -235,7 +259,7 @@ func renderDocsHeader(kyse__w kyse__io.Writer, kyse__data any) error {
 	}
 //line resources/views/docs/header.kyse.go:53
 	if kyse__d.SpecPath != "" {
-//line storage/framework/views/docs/header.go:239
+//line storage/framework/views/docs/header.go:263
 		if kyse__err == nil {
 			_, kyse__err = kyse__io.WriteString(kyse__w, "\t\t\t<a class=\"btn\" href=\"")
 		}
@@ -243,7 +267,7 @@ func renderDocsHeader(kyse__w kyse__io.Writer, kyse__data any) error {
 			var kyse__v6 string
 //line resources/views/docs/header.kyse.go:54
 			kyse__v6, kyse__err = kyse__view.TextURL(kyse__d.SpecPath)
-//line storage/framework/views/docs/header.go:247
+//line storage/framework/views/docs/header.go:271
 			if kyse__err != nil {
 				kyse__err = kyse__fmt.Errorf("%s: %w", "resources/views/docs/header.kyse.go:54", kyse__err)
 			} else {
@@ -259,7 +283,7 @@ func renderDocsHeader(kyse__w kyse__io.Writer, kyse__data any) error {
 		if kyse__err == nil {
 //line resources/views/docs/header.kyse.go:55
 			var kyse__v7 kyse__template.HTML = icons.Code(icons.Props{})
-//line storage/framework/views/docs/header.go:263
+//line storage/framework/views/docs/header.go:287
 			_, kyse__err = kyse__io.WriteString(kyse__w, string(kyse__v7))
 		}
 		if kyse__err == nil {
@@ -274,7 +298,7 @@ func renderDocsHeader(kyse__w kyse__io.Writer, kyse__data any) error {
 		if kyse__err == nil {
 //line resources/views/docs/header.kyse.go:57
 			var kyse__v8 kyse__template.HTML = icons.ArrowUpRight(icons.Props{})
-//line storage/framework/views/docs/header.go:278
+//line storage/framework/views/docs/header.go:302
 			_, kyse__err = kyse__io.WriteString(kyse__w, string(kyse__v8))
 		}
 		if kyse__err == nil {
@@ -293,14 +317,22 @@ func renderDocsHeader(kyse__w kyse__io.Writer, kyse__data any) error {
 	if kyse__err == nil {
 //line resources/views/docs/header.kyse.go:61
 		var kyse__v9 kyse__template.HTML = icons.Lock(icons.Props{})
-//line storage/framework/views/docs/header.go:297
+//line storage/framework/views/docs/header.go:321
 		_, kyse__err = kyse__io.WriteString(kyse__w, string(kyse__v9))
 	}
 	if kyse__err == nil {
 		_, kyse__err = kyse__io.WriteString(kyse__w, "\n")
 	}
 	if kyse__err == nil {
-		_, kyse__err = kyse__io.WriteString(kyse__w, "\t\t\t<span>Autorizar</span>\n")
+		_, kyse__err = kyse__io.WriteString(kyse__w, "\t\t\t<span>")
+	}
+	if kyse__err == nil {
+//line resources/views/docs/header.kyse.go:62
+		_, kyse__err = kyse__io.WriteString(kyse__w, kyse__template.HTMLEscapeString(kyse__view.Text(kyse__d.Translate("Authorize"))))
+//line storage/framework/views/docs/header.go:333
+	}
+	if kyse__err == nil {
+		_, kyse__err = kyse__io.WriteString(kyse__w, "</span>\n")
 	}
 	if kyse__err == nil {
 		_, kyse__err = kyse__io.WriteString(kyse__w, "\t\t</button>\n")

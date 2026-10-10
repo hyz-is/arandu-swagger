@@ -15,12 +15,12 @@ type HeaderViewData = swagger.SwaggerViewData
 	<div class="flex items-center gap-2 text-sm text-muted-foreground">
 		<a href="{{ .HomeURLOrDefault() }}" class="hover:text-foreground transition-colors flex items-center gap-1.5">
 			{!! icons.House(icons.Props{}) !!}
-			<span>Workspace</span>
+			<span>{{ .Translate("Home") }}</span>
 		</a>
 		<span>/</span>
 		<span class="text-foreground font-medium flex items-center gap-1.5">
 			{!! icons.BookOpen(icons.Props{}) !!}
-			<span>Documentação da API</span>
+			<span>{{ .Translate("API documentation") }}</span>
 		</span>
 	</div>
 	<div class="flex items-center gap-2">
@@ -37,7 +37,7 @@ type HeaderViewData = swagger.SwaggerViewData
 
 <header class="business-heading">
 	<div>
-		<p class="onboarding-eyebrow">INTEGRAÇÃO E DESENVOLVEDOR</p>
+		<p class="onboarding-eyebrow uppercase">{{ .Translate("Developer integration") }}</p>
 		<h1>{{ .Title }}</h1>
 		@if(.Description != "")
 			<p class="max-w-3xl text-sm text-muted-foreground mt-1">{{ .Description }}</p>
@@ -59,7 +59,7 @@ type HeaderViewData = swagger.SwaggerViewData
 		@endif
 		<button type="button" class="btn" data-arandu-swagger-authorize>
 			{!! icons.Lock(icons.Props{}) !!}
-			<span>Autorizar</span>
+			<span>{{ .Translate("Authorize") }}</span>
 		</button>
 	</div>
 </header>

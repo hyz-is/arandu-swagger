@@ -5,11 +5,8 @@ import "strings"
 // ResolveTranslations returns the effective translation dictionary for the given locale,
 // merged with any caller-supplied overrides.
 func ResolveTranslations(locale string, overrides map[string]string) map[string]string {
-	normalized := strings.ToLower(strings.TrimSpace(locale))
-	normalized = strings.ReplaceAll(normalized, "_", "-")
-
 	var dict map[string]string
-	if normalized == "pt-br" || normalized == "pt" {
+	if isPortuguese(locale) {
 		dict = defaultPortugueseTranslations()
 	} else {
 		dict = make(map[string]string)
@@ -22,6 +19,45 @@ func ResolveTranslations(locale string, overrides map[string]string) map[string]
 	}
 
 	return dict
+}
+
+// Translate returns the text drawn for key, an English source string, in
+// locale: the caller's override for key when it is not blank, else the
+// default Portuguese text when locale is pt or pt-BR, else key itself.
+func Translate(locale string, overrides map[string]string, key string) string {
+	if value := overrides[key]; strings.TrimSpace(value) != "" {
+		return value
+	}
+	if isPortuguese(locale) {
+		if value, ok := defaultPortuguesePageText()[key]; ok {
+			return value
+		}
+		if value, ok := defaultPortugueseTranslations()[key]; ok {
+			return value
+		}
+	}
+	return key
+}
+
+// isPortuguese reports whether locale selects the default Portuguese text.
+func isPortuguese(locale string) bool {
+	normalized := strings.ToLower(strings.TrimSpace(locale))
+	normalized = strings.ReplaceAll(normalized, "_", "-")
+	return normalized == "pt-br" || normalized == "pt"
+}
+
+// defaultPortuguesePageText is the Portuguese for the text the package's own
+// markup draws around Swagger UI. It is kept apart from the Swagger UI
+// dictionary because that one is sent to the browser and applied to every
+// text node Swagger UI draws, where a word such as "Home" may be the name of
+// an operation or a tag.
+func defaultPortuguesePageText() map[string]string {
+	return map[string]string{
+		"Home":                  "Início",
+		"API documentation":     "Documentação da API",
+		"Developer integration": "Integração e desenvolvedor",
+		"Toggle theme":          "Alternar tema",
+	}
 }
 
 func defaultPortugueseTranslations() map[string]string {

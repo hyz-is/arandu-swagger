@@ -209,7 +209,23 @@ func renderDocsTopbar(kyse__w kyse__io.Writer, kyse__data any) error {
 	if !kyse__d.DisableThemeToggle {
 //line storage/framework/views/docs/topbar.go:211
 		if kyse__err == nil {
-			_, kyse__err = kyse__io.WriteString(kyse__w, "\t\t\t\t<button type=\"button\" class=\"arandu-swagger-theme-toggle\" aria-label=\"Alternar tema\" title=\"Alternar tema\">\n")
+			_, kyse__err = kyse__io.WriteString(kyse__w, "\t\t\t\t<button type=\"button\" class=\"arandu-swagger-theme-toggle\" aria-label=\"")
+		}
+		if kyse__err == nil {
+//line resources/views/docs/topbar.kyse.go:44
+			_, kyse__err = kyse__io.WriteString(kyse__w, kyse__view.TextAttr(kyse__d.Translate("Toggle theme")))
+//line storage/framework/views/docs/topbar.go:218
+		}
+		if kyse__err == nil {
+			_, kyse__err = kyse__io.WriteString(kyse__w, "\" title=\"")
+		}
+		if kyse__err == nil {
+//line resources/views/docs/topbar.kyse.go:44
+			_, kyse__err = kyse__io.WriteString(kyse__w, kyse__view.TextAttr(kyse__d.Translate("Toggle theme")))
+//line storage/framework/views/docs/topbar.go:226
+		}
+		if kyse__err == nil {
+			_, kyse__err = kyse__io.WriteString(kyse__w, "\">\n")
 		}
 		if kyse__err == nil {
 			_, kyse__err = kyse__io.WriteString(kyse__w, "\t\t\t\t\t<span class=\"arandu-swagger-glyph-light\" aria-hidden=\"true\">")
@@ -217,7 +233,7 @@ func renderDocsTopbar(kyse__w kyse__io.Writer, kyse__data any) error {
 		if kyse__err == nil {
 //line resources/views/docs/topbar.kyse.go:45
 			var kyse__v5 kyse__template.HTML = icons.Sun(icons.Props{})
-//line storage/framework/views/docs/topbar.go:221
+//line storage/framework/views/docs/topbar.go:237
 			_, kyse__err = kyse__io.WriteString(kyse__w, string(kyse__v5))
 		}
 		if kyse__err == nil {
@@ -229,7 +245,7 @@ func renderDocsTopbar(kyse__w kyse__io.Writer, kyse__data any) error {
 		if kyse__err == nil {
 //line resources/views/docs/topbar.kyse.go:46
 			var kyse__v6 kyse__template.HTML = icons.Moon(icons.Props{})
-//line storage/framework/views/docs/topbar.go:233
+//line storage/framework/views/docs/topbar.go:249
 			_, kyse__err = kyse__io.WriteString(kyse__w, string(kyse__v6))
 		}
 		if kyse__err == nil {

@@ -13,6 +13,7 @@ type PageOptions struct {
 	UIPath             string
 	Favicon            string
 	Locale             string
+	Translations       map[string]string
 	HasTheme           bool
 	Theme              PageThemeOptions
 	HasCustomJS        bool
@@ -154,10 +155,7 @@ func Page(opts PageOptions) []byte {
 			page.WriteString("      </a>\n")
 		}
 		if hasToggle {
-			toggleLabel := "Alternar tema"
-			if !strings.HasPrefix(strings.ToLower(locale), "pt") {
-				toggleLabel = "Toggle theme"
-			}
+			toggleLabel := Translate(locale, opts.Translations, "Toggle theme")
 			page.WriteString("      <button type=\"button\" class=\"arandu-swagger-theme-toggle\" aria-label=\"")
 			page.WriteString(html.EscapeString(toggleLabel))
 			page.WriteString("\" title=\"")

@@ -6,6 +6,8 @@ import (
 
 	"github.com/arandu-io/framework/foundation"
 	"github.com/arandu-io/hesape/view"
+
+	"github.com/hyz-is/arandu-swagger/internal/ui"
 )
 
 // The view sources this package offers to the project that installs it.
@@ -57,6 +59,9 @@ type SwaggerViewData struct {
 	LogoAlt            string
 	LogoHref           string
 	LogoTarget         string
+	// Translations holds Config.Translations, which Translate consults
+	// before the package's own text.
+	Translations map[string]string
 }
 
 // FaviconOrDefault returns the favicon path, defaulting to /favicon.ico.
@@ -95,6 +100,15 @@ func (d SwaggerViewData) BackTextOrDefault() string {
 		return "Voltar para o site"
 	}
 	return "Back to site"
+}
+
+// Translate returns the text drawn for key, one of the English strings the
+// published views write, in the page's Locale: a Translations entry for key
+// wins when it is not blank, then the package's Portuguese for pt and pt-BR,
+// then key itself. It reads the Locale and Config.Translations the embedded
+// page and the Swagger UI initializer read, so the whole page follows them.
+func (d SwaggerViewData) Translate(key string) string {
+	return ui.Translate(d.Locale, d.Translations, key)
 }
 
 // LogoURLOrDefault returns the configured logo URL. It is empty when no logo
