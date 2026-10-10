@@ -1,5 +1,40 @@
 # Upgrade Guide
 
+## v0.4.5 — the Framework floor is 0.56
+
+Nothing in this package's own API moved: `apidiff` against `v0.4.4` reports no
+change at all. What moved is the minimum the package compiles against, which
+`go.mod` and `arandu.mod.toml` now declare:
+
+| | was | is |
+|---|---|---|
+| `github.com/arandu-io/framework` | `v0.55.1` | `v0.56.0` |
+| `github.com/arandu-io/hesape` | `v0.52.0` | `v0.54.0` |
+| `github.com/arandu-io/kyse` | `v0.33.0` | `v0.34.1` |
+
+```bash
+go get github.com/arandu-io/framework@v0.56.0
+go get github.com/arandu-io/hesape@v0.54.0
+go get github.com/hyz-is/arandu-swagger@v0.4.5
+```
+
+An application below those upgrades them first, following the Framework,
+Hesape and Kyse upgrade guides between the two versions: Framework v0.56.0
+removes `config.Config.SessionTTL`, so `config.Load` no longer reads
+`SESSION_TTL`, and puts `APP_NAME` on every request, which Hesape v0.54.0's
+`view.New` reads into `Page.AppName`. Hesape v0.53.0 and Kyse v0.34.0 change
+the markup `OneTimeCode` and `Masked` draw and the script that mounts it.
+
+The documentation page does not take that name. The UI route still hands the
+`docs.swagger` view the brand it chose before, `Theme.Logo.Alt`, else
+`Theme.Title`, else `Config.Title`, so a page that read "Billing API" keeps
+reading it whatever `APP_NAME` says.
+
+The published views are unchanged, and `aru view:build` compiles them to the
+same code it did before. A project that published them has nothing to publish
+again. The generated document, the routes, the configuration and the four
+declared capabilities are unchanged.
+
 ## v0.4.4 — the published views write their targets, keep the page policy, and follow the locale
 
 `apidiff` against `v0.4.3` reports two compatible additions and nothing else:
