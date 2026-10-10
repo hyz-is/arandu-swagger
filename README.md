@@ -134,6 +134,8 @@ With the default paths, the module serves:
 | `GET` | `/docs/` | permanent redirect to `/docs` |
 | `GET` | `/docs/openapi.json` | OpenAPI 3.1.0 JSON |
 | `GET` | `/docs/swagger-initializer.js` | CSP-safe UI initializer |
+| `GET` | `/docs/theme.css` | generated theme stylesheet, registered with the UI even for the zero `Theme` |
+| `GET` | `/docs/theme.js` | `Theme.CustomJS`, registered only when it is set |
 | `GET` | `/docs/assets/5.32.14/*` | fixed, allowlisted UI assets |
 
 The UI and specification routes are not authenticated by this package. Attach
