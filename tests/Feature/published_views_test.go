@@ -233,7 +233,7 @@ func TestUIRouteSendsTheDocumentedHeadersFromTheViewAndTheEmbeddedPage(t *testin
 
 	viewRouter := mountRendered(t, enabledConfig())
 	renderedPage(t, viewRouter, "/docs")
-	embeddedRouter, _ := mount(t, enabledConfig())
+	embeddedRouter, _ := mount(t, embeddedConfig())
 
 	for _, tc := range []struct {
 		name   string
@@ -262,7 +262,7 @@ func TestViewPolicyAdmitsOnlyFormsToItsOwnOriginAndChangesNothingElse(t *testing
 	t.Parallel()
 
 	view := directives(t, request(mountRendered(t, enabledConfig()), "/docs").Header().Get("Content-Security-Policy"))
-	embeddedRouter, _ := mount(t, enabledConfig())
+	embeddedRouter, _ := mount(t, embeddedConfig())
 	embedded := directives(t, request(embeddedRouter, "/docs").Header().Get("Content-Security-Policy"))
 
 	if got := view["form-action"]; got != "'self'" {
@@ -301,7 +301,9 @@ func TestUIRouteReplacesThePolicyAMiddlewareSetBeforeIt(t *testing.T) {
 	config := enabledConfig()
 	config.UIMiddleware = []swagger.Middleware{fmiddleware.SecurityHeaders(false)}
 	viewPolicy, embeddedPolicy := documentedPolicies(t)
-	embeddedRouter, _ := mount(t, config)
+	embeddedCfg := config
+	embeddedCfg.ViewName = unpublishedView
+	embeddedRouter, _ := mount(t, embeddedCfg)
 
 	for _, tc := range []struct {
 		name   string
@@ -453,7 +455,9 @@ func TestThemeToggleLabelFollowsTheLocaleOnBothPages(t *testing.T) {
 		if got := openingTag(t, viewBody, "arandu-swagger-theme-toggle"); !strings.Contains(got, want) {
 			t.Errorf("%s: the view's toggle = %s, want %s", tc.name, got, want)
 		}
-		embedded, _ := mount(t, tc.config)
+		embeddedCfg := tc.config
+		embeddedCfg.ViewName = unpublishedView
+		embedded, _ := mount(t, embeddedCfg)
 		embeddedBody := request(embedded, "/docs").Body.String()
 		if got := openingTag(t, embeddedBody, "arandu-swagger-theme-toggle"); !strings.Contains(got, want) {
 			t.Errorf("%s: the embedded page's toggle = %s, want %s", tc.name, got, want)

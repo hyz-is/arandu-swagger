@@ -69,7 +69,8 @@ func TestUIWithoutThemeNamesNoProductHomeOrLogo(t *testing.T) {
 		t.Errorf("home = %q / %q, want /", data.HomeURL, data.HomeURLOrDefault())
 	}
 
-	page := request(router, "/docs")
+	embedded, _ := mount(t, embeddedConfig())
+	page := request(embedded, "/docs")
 	if page.Code != http.StatusOK {
 		t.Fatalf("GET /docs answered %d", page.Code)
 	}

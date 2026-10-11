@@ -10,7 +10,7 @@ import (
 func TestUIBootstrapAllowsUnsafeInlineOnlyForSwaggerStyleAttributes(t *testing.T) {
 	t.Parallel()
 
-	router, _ := mount(t, enabledConfig())
+	router, _ := mount(t, embeddedConfig())
 	page := request(router, swagger.DefaultUIPath)
 	csp := page.Header().Get("Content-Security-Policy")
 	if strings.Count(csp, "'unsafe-inline'") != 1 || !strings.Contains(csp, "style-src-attr 'unsafe-inline'") {

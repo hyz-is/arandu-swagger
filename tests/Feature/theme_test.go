@@ -14,7 +14,7 @@ func TestThemeServesCustomCSSAndAppliesDarkPalette(t *testing.T) {
 	t.Parallel()
 
 	router := fhttp.NewRouter()
-	cfg := enabledConfig()
+	cfg := embeddedConfig()
 	cfg.Theme = swagger.Theme{
 		DarkMode:        true,
 		PrimaryColor:    "#5eead4",
@@ -57,7 +57,7 @@ func TestThemeRendersLogoAndFaviconInTopbar(t *testing.T) {
 	t.Parallel()
 
 	router := fhttp.NewRouter()
-	cfg := enabledConfig()
+	cfg := embeddedConfig()
 	cfg.Theme = swagger.Theme{
 		DarkMode: true,
 		Favicon:  "/favicon.ico",
@@ -97,7 +97,7 @@ func TestThemeRendersBackLinkAndThemeToggleInTopbar(t *testing.T) {
 	t.Parallel()
 
 	router := fhttp.NewRouter()
-	cfg := enabledConfig()
+	cfg := embeddedConfig()
 	cfg.Locale = "pt-BR"
 	cfg.Theme = swagger.Theme{
 		DarkMode: true,
@@ -143,7 +143,7 @@ func TestHTMXLifecycleAndBoostAttribute(t *testing.T) {
 	t.Parallel()
 
 	router := fhttp.NewRouter()
-	cfg := enabledConfig()
+	cfg := embeddedConfig()
 	cfg.Theme = swagger.Theme{
 		HTMX: swagger.HTMXConfig{
 			Enabled: true,

@@ -12,10 +12,11 @@ import (
 
 func TestSwaggerUII18nAndCustomTranslations(t *testing.T) {
 	cfg := swagger.Config{
-		Enabled: true,
-		Title:   "API Peráta",
-		Version: "1.0.0",
-		Locale:  "pt-BR",
+		Enabled:  true,
+		ViewName: unpublishedView,
+		Title:    "API Peráta",
+		Version:  "1.0.0",
+		Locale:   "pt-BR",
 		Translations: map[string]string{
 			"Authorize": "Fazer Login",
 		},

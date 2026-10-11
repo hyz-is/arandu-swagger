@@ -351,12 +351,29 @@ func (m *Module) serveUIAction(ctx *fhttp.Context) error {
 		LogoHref:           logoHref,
 		LogoTarget:         logoTarget,
 	}
-	if err := ctx.View(viewName, data); err == nil {
+	err := ctx.View(viewName, data)
+	if err == nil {
 		return nil
 	}
-	// Fallback to standalone embedded HTML shell
-	m.serveUI(ctx.Response, ctx.Request)
-	return nil
+	// The embedded page stands in for a view the application never published,
+	// and for nothing else. Every other error is returned, so the router answers
+	// it with the application's error page instead of a page that hides it: a
+	// published view that fails to render, a registered view with no view layer
+	// to draw it, and a connection that broke after the view started writing,
+	// where a second page would follow the first.
+	if !viewRegistered(viewName) {
+		m.serveUI(ctx.Response, ctx.Request)
+		return nil
+	}
+	return err
+}
+
+// viewRegistered reports whether an application registered the view called
+// name, which it does by importing the package the view compiled to.
+func viewRegistered(name string) bool {
+	registered := view.Registered()
+	at := sort.SearchStrings(registered, name)
+	return at < len(registered) && registered[at] == name
 }
 
 // page is the chrome an application's layout draws around the docs.swagger
@@ -384,7 +401,7 @@ func (m *Module) page(ctx *fhttp.Context, title, brand, homeURL string) view.Pag
 }
 
 // serveUI writes the embedded page. It runs only from serveUIAction, when no
-// view answered.
+// view by the configured name is registered.
 func (m *Module) serveUI(w http.ResponseWriter, _ *http.Request) {
 	setUIPageHeaders(w, embeddedContentSecurityPolicy)
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")

@@ -119,7 +119,7 @@ func TestFirstSpecificationRequestSeesRoutesRegisteredAfterSwagger(t *testing.T)
 func TestUIIsSelfHostedCanonicalAndProtectedByStrictHeaders(t *testing.T) {
 	t.Parallel()
 
-	config := enabledConfig()
+	config := embeddedConfig()
 	config.Title = "Example <API>"
 	config.PersistAuthorization = true
 	config.DisableTryItOut = true
@@ -189,7 +189,7 @@ func TestUIIsSelfHostedCanonicalAndProtectedByStrictHeaders(t *testing.T) {
 func TestUIAndSpecificationMiddlewareRemainIsolated(t *testing.T) {
 	t.Parallel()
 
-	config := enabledConfig()
+	config := embeddedConfig()
 	config.UIMiddleware = []swagger.Middleware{headerMiddleware("X-UI-Middleware", "applied")}
 	config.SpecMiddleware = []swagger.Middleware{headerMiddleware("X-Spec-Middleware", "applied")}
 	router, _ := mount(t, config)
@@ -258,10 +258,10 @@ func TestTwoInstancesKeepTheirEndpointsAndRegistriesIsolated(t *testing.T) {
 	firstRoute := router.ForModule("first").Get("/first", emptyHandler).Name("first.index")
 	secondRoute := router.ForModule("second").Get("/second", emptyHandler).Name("second.index")
 
-	firstConfig := enabledConfig()
+	firstConfig := embeddedConfig()
 	firstConfig.Title = "First API"
 	firstConfig.UIPath = "/first-docs"
-	secondConfig := enabledConfig()
+	secondConfig := embeddedConfig()
 	secondConfig.Title = "Second API"
 	secondConfig.UIPath = "/second-docs"
 
@@ -483,6 +483,20 @@ func enabledConfig() swagger.Config {
 		Title:   "Example API",
 		Version: "1.0.0",
 	}
+}
+
+// unpublishedView is a view name nothing registers. This test binary imports
+// the compiled published views, so the UI route would draw docs.swagger; a
+// test of the embedded page names this view instead, which is how the route
+// answers an application that never published the views.
+const unpublishedView = "docs.unpublished"
+
+// embeddedConfig is enabledConfig naming unpublishedView, so the UI route
+// answers with the embedded page.
+func embeddedConfig() swagger.Config {
+	config := enabledConfig()
+	config.ViewName = unpublishedView
+	return config
 }
 
 func newModule(t *testing.T, config swagger.Config) *swagger.Module {

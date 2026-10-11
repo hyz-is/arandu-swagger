@@ -33,8 +33,8 @@ to its default remote validator.
 
 The HTML contains no inline script, inline event handler or style block. The
 UI route sends the same headers whichever page answers it, the `docs.swagger`
-view an application published or the embedded page served when no view is
-registered:
+view an application published or the embedded page served when no view by
+that name is registered:
 
 ```text
 Cache-Control: no-store
@@ -96,6 +96,13 @@ own. Every other header such a middleware sets, `X-Frame-Options`,
 browser unchanged. A reverse proxy mounting the application under a prefix
 must preserve the configured absolute routes or configure `UIPath` and
 `SpecPath` to their externally reachable paths.
+
+The embedded page answers only when no view named `ViewName` is registered.
+Any other error drawing the view is returned to the router and answered with
+the application's error page rather than covered by the embedded page: a
+published view that fails to render, a registered view with no view layer
+wired to draw it, and a connection that breaks after the view has started
+writing. Nothing is written after the view has written its status.
 
 ## License provenance
 

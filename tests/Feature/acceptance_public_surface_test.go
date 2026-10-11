@@ -110,7 +110,7 @@ func TestAcceptanceModuleForwardsEveryReusableComponentRegistration(t *testing.T
 func TestAcceptanceCustomUIAndSpecificationPathsOwnOnlyTheirNamespaces(t *testing.T) {
 	t.Parallel()
 
-	config := enabledConfig()
+	config := embeddedConfig()
 	config.UIPath = "/reference"
 	config.SpecPath = "/openapi/v1.json"
 	router, _ := mount(t, config)
