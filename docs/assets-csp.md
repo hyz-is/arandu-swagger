@@ -78,12 +78,17 @@ instead of being refused by the browser. The embedded page draws no form a
 browser submits, because Swagger UI handles its Authorize dialog in script, so
 its `form-action` stays `'none'`.
 
-An application middleware may add stricter headers. If it replaces this CSP,
-it must still allow the versioned same-origin stylesheet, bundle, initializer,
-and the specification request. A reverse proxy mounting the application under
-a prefix must preserve the configured absolute routes or configure `UIPath`
-and `SpecPath` to their externally reachable paths.
-
+The UI route sets these four headers itself, so a value an application
+middleware set for any of them before calling the route is replaced. That
+includes the default security headers a new application runs on every route,
+which write a policy of their own on every answer: that policy has no
+`style-src-attr` exception for Swagger UI and admits every same-origin
+resource type through `default-src 'self'`, so the route answers with its
+own. Every other header such a middleware sets, `X-Frame-Options`,
+`Permissions-Policy` or `Strict-Transport-Security` among them, reaches the
+browser unchanged. A reverse proxy mounting the application under a prefix
+must preserve the configured absolute routes or configure `UIPath` and
+`SpecPath` to their externally reachable paths.
 
 ## License provenance
 

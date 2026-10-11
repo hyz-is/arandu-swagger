@@ -16,6 +16,7 @@ import (
 	"testing"
 
 	fhttp "github.com/arandu-io/framework/http"
+	fmiddleware "github.com/arandu-io/framework/http/middleware"
 	"github.com/arandu-io/hesape/view"
 	swagger "github.com/hyz-is/arandu-swagger"
 
@@ -279,6 +280,57 @@ func TestViewPolicyAdmitsOnlyFormsToItsOwnOriginAndChangesNothingElse(t *testing
 		}
 		if got := view[name]; got != value {
 			t.Errorf("the view's %s = %q, want the embedded page's %q", name, got, value)
+		}
+	}
+}
+
+func TestUIRouteReplacesThePolicyAMiddlewareSetBeforeIt(t *testing.T) {
+	t.Parallel()
+
+	// The claim docs/assets-csp.md makes, word for word with its line breaks
+	// folded, so the document cannot go back to promising that a middleware
+	// replaces the page's policy while this test still passes.
+	claim := "The UI route sets these four headers itself, so a value an application middleware set for any of them before calling the route is replaced."
+	if doc := spaces.ReplaceAllString(assetsCSPDoc(t), " "); !strings.Contains(doc, claim) {
+		t.Errorf("docs/assets-csp.md no longer says %q", claim)
+	}
+
+	// The default security headers an application runs on every route, which
+	// write a policy, a referrer policy and nosniff of their own before the
+	// handler runs.
+	config := enabledConfig()
+	config.UIMiddleware = []swagger.Middleware{fmiddleware.SecurityHeaders(false)}
+	viewPolicy, embeddedPolicy := documentedPolicies(t)
+	embeddedRouter, _ := mount(t, config)
+
+	for _, tc := range []struct {
+		name   string
+		router *fhttp.Router
+		policy string
+	}{
+		{"the docs.swagger view", mountRendered(t, config), viewPolicy},
+		{"the embedded page", embeddedRouter, embeddedPolicy},
+	} {
+		response := request(tc.router, "/docs")
+		if response.Code != http.StatusOK {
+			t.Fatalf("%s answered %d", tc.name, response.Code)
+		}
+		if got := response.Header().Get("Content-Security-Policy"); got != tc.policy {
+			t.Errorf("%s: Content-Security-Policy = %q, want the route's own %q", tc.name, got, tc.policy)
+		}
+		if got := response.Header().Values("Content-Security-Policy"); len(got) != 1 {
+			t.Errorf("%s: %d Content-Security-Policy headers, want one: %q", tc.name, len(got), got)
+		}
+		if got := response.Header().Get("Referrer-Policy"); got != "no-referrer" {
+			t.Errorf("%s: Referrer-Policy = %q, want the route's no-referrer", tc.name, got)
+		}
+		// The headers the route does not set reach the browser as the
+		// middleware wrote them.
+		if got := response.Header().Get("X-Frame-Options"); got != "DENY" {
+			t.Errorf("%s: X-Frame-Options = %q, want the middleware's DENY", tc.name, got)
+		}
+		if got := response.Header().Get("Permissions-Policy"); got == "" {
+			t.Errorf("%s: the middleware's Permissions-Policy did not reach the answer", tc.name)
 		}
 	}
 }

@@ -465,6 +465,12 @@ func (m *Module) serveAsset(assetPath string) http.HandlerFunc {
 // application's view draws the page or the embedded page does: no caching, no
 // sniffing, policy as the content security policy, and no referrer. It is the
 // one place those headers are set for the page.
+//
+// Each is set rather than added, so a value an application middleware wrote
+// for one of them before the handler ran is replaced. That is deliberate: the
+// default security headers an application runs on every route write their own
+// policy on every answer, one without the style-attribute exception Swagger UI
+// needs, so leaving a policy already set would leave the page under that one.
 func setUIPageHeaders(w http.ResponseWriter, policy string) {
 	header := w.Header()
 	header.Set("X-Content-Type-Options", "nosniff")
