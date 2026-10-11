@@ -1,5 +1,78 @@
 # Upgrade Guide
 
+## v0.4.6 — the docs view works inside the application's layout
+
+`apidiff` against `v0.4.5` reports no change at all. What moved is how the UI
+route answers when a project's `docs.swagger` view extends its own layout,
+and what it does when that view cannot be drawn.
+
+### Forms in the layout submit to the application
+
+The view now answers with `form-action 'self'` instead of `'none'`:
+
+```text
+Content-Security-Policy: default-src 'none'; style-src 'self'; style-src-attr 'unsafe-inline'; script-src 'self'; img-src 'self' data: https:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'
+```
+
+Every other directive is unchanged. Before, the browser refused a form in the
+layout that it submitted natively, such as signing out. The embedded page
+keeps `form-action 'none'`, because it draws no form a browser submits.
+
+The route still sets `Content-Security-Policy`, `Referrer-Policy`,
+`X-Content-Type-Options` and `Cache-Control` itself, so it replaces what a
+middleware wrote before it, including the default security headers a new
+application runs on every route. `docs/assets-csp.md` used to say a
+middleware could replace the policy. It now says what the code does, and
+that every other header such a middleware sets reaches the browser
+unchanged.
+
+### The view is handed the application's page
+
+The `view.Page` inside `SwaggerViewData` now starts from `view.New`. It
+carries the CSRF token the forms middleware issued, the login, logout and
+register links the route table names, and whether somebody is signed in. The
+route used to build that page by hand without any of these. A layout drawn
+around the view then had no sign-out form, and the CSRF check refused every
+form it did draw with 419.
+
+The module reads no session. Signed-in state comes from the subject on the
+request, so a project that wants the layout to show who is signed in mounts
+the middleware that loads it on the UI route:
+
+```go
+swagger.Config{
+	// ...
+	UIMiddleware: []swagger.Middleware{middleware.LoadSubject(sessions)},
+}
+```
+
+`middleware.RequireAuth` loads the subject too, and also keeps guests out.
+Without either, the page is drawn for a guest. The fields the module decides
+are as before: the title, the description, the brand (`Theme.Logo.Alt`, else
+`Theme.Title`, else `Config.Title`, never `APP_NAME`), the home link, and the
+canonical address and path, which are `UIPath`.
+
+### A view that fails is no longer covered by the embedded page
+
+Before, the route served the embedded page whenever `ctx.View` failed. It now
+serves it only when no view named `ViewName` is registered. Every other error
+goes to the router, which answers with the application's error page:
+
+- a published view that fails to render, which used to answer 200 with the
+  embedded page;
+- a registered view with no view layer wired;
+- a connection that breaks after the view started writing, after which the
+  route used to write a second status and page.
+
+A project that never published the views is answered as before.
+
+### A project that published the views
+
+The published views changed only in the comment at the top of
+`swagger.kyse.go`, which is now in English. A project that published them has
+nothing to publish again. To show the signed-in state in a layout around the
+page, add the `UIMiddleware` line above.
+
 ## v0.4.5 — the Framework floor is 0.56
 
 Nothing in this package's own API moved: `apidiff` against `v0.4.4` reports no
