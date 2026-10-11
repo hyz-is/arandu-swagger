@@ -335,14 +335,7 @@ func (m *Module) serveUIAction(ctx *fhttp.Context) error {
 		logoTarget = m.cfg.Theme.Logo.Target
 	}
 	data := SwaggerViewData{
-		Page: view.Page{
-			Title:       title,
-			Description: m.cfg.Description,
-			AppName:     brand,
-			Canonical:   m.cfg.UIPath,
-			Path:        m.cfg.UIPath,
-			HomeURL:     homeURL,
-		},
+		Page:               m.page(ctx, title, brand, homeURL),
 		Version:            m.cfg.Version,
 		SpecPath:           m.cfg.SpecPath,
 		UIPath:             m.cfg.UIPath,
@@ -364,6 +357,30 @@ func (m *Module) serveUIAction(ctx *fhttp.Context) error {
 	// Fallback to standalone embedded HTML shell
 	m.serveUI(ctx.Response, ctx.Request)
 	return nil
+}
+
+// page is the chrome an application's layout draws around the docs.swagger
+// view when the view extends it.
+//
+// It starts from the page view.New builds for every screen of the
+// application, so the layout carries here what it carries on the
+// application's own screens and by the same rule: the CSRF token the middleware
+// that protects forms issued for this request, the signed-in state of the
+// subject the application's UIMiddleware loaded onto the request, and the
+// navigation links the route table names. The module has no session of its
+// own, so a subject nobody loaded is a page drawn for a guest.
+//
+// The fields set after New are the ones this module decides: the title, the
+// description, the brand, the home link, and the canonical address and path,
+// which are the configured UIPath.
+func (m *Module) page(ctx *fhttp.Context, title, brand, homeURL string) view.Page {
+	page := view.New(ctx, title)
+	page.Description = m.cfg.Description
+	page.AppName = brand
+	page.Canonical = m.cfg.UIPath
+	page.Path = m.cfg.UIPath
+	page.HomeURL = homeURL
+	return page
 }
 
 // serveUI writes the embedded page. It runs only from serveUIAction, when no

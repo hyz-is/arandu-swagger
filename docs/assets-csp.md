@@ -74,7 +74,14 @@ Authorize button carries `data-arandu-swagger-authorize` and is bound by the
 external initializer for that reason. A form in the layout may submit to the
 application's own origin and to no other: that is what `form-action 'self'`
 admits, so a sign-out form in the layout's header reaches the application
-instead of being refused by the browser. The embedded page draws no form a
+instead of being refused by the browser. The page the view is handed starts
+from the one `view.New` builds for the application's own screens, so the
+layout draws the same CSRF token, navigation links and signed-in state there
+as everywhere else; the module sets only its title, description, brand, home
+link, canonical address and path. The module reads no session: the
+signed-in state is the subject the application's `UIMiddleware` loads onto
+the request, `middleware.LoadSubject` or `middleware.RequireAuth`, and
+without one the layout is drawn for a guest. The embedded page draws no form a
 browser submits, because Swagger UI handles its Authorize dialog in script, so
 its `form-action` stays `'none'`.
 
