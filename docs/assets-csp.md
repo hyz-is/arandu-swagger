@@ -42,7 +42,14 @@ X-Content-Type-Options: nosniff
 Referrer-Policy: no-referrer
 ```
 
-and this policy:
+The two pages answer with one policy that differs in its last directive,
+`form-action`, and in nothing else. The `docs.swagger` view answers with:
+
+```text
+default-src 'none'; style-src 'self'; style-src-attr 'unsafe-inline'; script-src 'self'; img-src 'self' data: https:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'
+```
+
+and the embedded page with:
 
 ```text
 default-src 'none'; style-src 'self'; style-src-attr 'unsafe-inline'; script-src 'self'; img-src 'self' data: https:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'
@@ -53,23 +60,30 @@ scripts and inline style blocks remain forbidden. Swagger UI 5.x applies style
 attributes at runtime, so the policy contains the narrow CSP3
 `style-src-attr 'unsafe-inline'` exception required for the vendored UI to render;
 it does not widen `script-src` or `style-src`. `img-src` admits `https:` so a
-`Theme.Logo` may be an absolute HTTPS URL. `frame-ancestors 'none'` prevents framing. `base-uri` and
-`form-action` are disabled. Try it out therefore works only against a
-same-origin server under the built-in policy. A cross-origin API requires an
-explicit application or proxy decision about both CSP and CORS.
+`Theme.Logo` may be an absolute HTTPS URL. `frame-ancestors 'none'` prevents
+framing, and `base-uri` is disabled. Try it out sends its requests with
+`fetch`, which `connect-src` governs, so it works only against a same-origin
+server under the built-in policy. A cross-origin API requires an explicit
+application or proxy decision about both CSP and CORS.
 
-The policy covers the whole page the view draws. A published view changed to
-extend an application layout therefore answers under it too: that layout's
-scripts, stylesheets and fonts must be same-origin files, and a form in it
-cannot submit, because `form-action` is `'none'`. The published header's
+The view's policy covers the whole page the view draws. A published view
+changed to extend an application layout therefore answers under it too: that
+layout's scripts, stylesheets and fonts must be same-origin files, and an
+inline `<script>` or `on…=` handler does not run. The published header's
 Authorize button carries `data-arandu-swagger-authorize` and is bound by the
-external initializer for the same reason.
+external initializer for that reason. A form in the layout may submit to the
+application's own origin and to no other: that is what `form-action 'self'`
+admits, so a sign-out form in the layout's header reaches the application
+instead of being refused by the browser. The embedded page draws no form a
+browser submits, because Swagger UI handles its Authorize dialog in script, so
+its `form-action` stays `'none'`.
 
 An application middleware may add stricter headers. If it replaces this CSP,
 it must still allow the versioned same-origin stylesheet, bundle, initializer,
 and the specification request. A reverse proxy mounting the application under
 a prefix must preserve the configured absolute routes or configure `UIPath`
 and `SpecPath` to their externally reachable paths.
+
 
 ## License provenance
 

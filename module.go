@@ -20,7 +20,23 @@ import (
 	"github.com/hyz-is/arandu-swagger/internal/ui"
 )
 
-const uiContentSecurityPolicy = "default-src 'none'; style-src 'self'; style-src-attr 'unsafe-inline'; script-src 'self'; img-src 'self' data: https:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'"
+// uiPolicyDirectives is the content security policy of the UI page up to its
+// last directive, form-action, which is the only one the two pages that answer
+// the route need differently.
+const uiPolicyDirectives = "default-src 'none'; style-src 'self'; style-src-attr 'unsafe-inline'; script-src 'self'; img-src 'self' data: https:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action "
+
+const (
+	// viewContentSecurityPolicy answers when the application's docs.swagger
+	// view draws the page. That view may extend the application's layout, and a
+	// form in a layout, such as signing out, submits to the application, so
+	// form-action admits this origin and no other.
+	viewContentSecurityPolicy = uiPolicyDirectives + "'self'"
+
+	// embeddedContentSecurityPolicy answers when the embedded page draws it.
+	// That page has no form a browser submits: Swagger UI handles its own forms
+	// in script and sends its requests with fetch, which connect-src governs.
+	embeddedContentSecurityPolicy = uiPolicyDirectives + "'none'"
+)
 
 var (
 	_ foundation.Module      = (*Module)(nil)
@@ -277,10 +293,11 @@ func (m *Module) serveSpecification(w http.ResponseWriter, _ *http.Request) {
 }
 
 func (m *Module) serveUIAction(ctx *fhttp.Context) error {
-	// Set before either page is drawn, so the view and the embedded page answer
-	// with the same policy. The renderer buffers the view and only adds its
-	// content type, so nothing below replaces these.
-	setUIPageHeaders(ctx.Response)
+	// Set before the view is drawn: the renderer buffers the view and only adds
+	// its content type, so nothing below replaces these. When no view answers,
+	// nothing has been written yet, and serveUI puts the embedded page's policy
+	// in place of this one.
+	setUIPageHeaders(ctx.Response, viewContentSecurityPolicy)
 
 	viewName := m.cfg.ViewName
 	if viewName == "" {
@@ -349,9 +366,10 @@ func (m *Module) serveUIAction(ctx *fhttp.Context) error {
 	return nil
 }
 
-// serveUI writes the embedded page. It runs only from serveUIAction, which has
-// already set the headers both pages share.
+// serveUI writes the embedded page. It runs only from serveUIAction, when no
+// view answered.
 func (m *Module) serveUI(w http.ResponseWriter, _ *http.Request) {
+	setUIPageHeaders(w, embeddedContentSecurityPolicy)
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 
@@ -445,13 +463,13 @@ func (m *Module) serveAsset(assetPath string) http.HandlerFunc {
 
 // setUIPageHeaders sets what every answer of the UI route carries, whether the
 // application's view draws the page or the embedded page does: no caching, no
-// sniffing, the content security policy and no referrer. It is the one place
-// those headers are set for the page.
-func setUIPageHeaders(w http.ResponseWriter) {
+// sniffing, policy as the content security policy, and no referrer. It is the
+// one place those headers are set for the page.
+func setUIPageHeaders(w http.ResponseWriter, policy string) {
 	header := w.Header()
 	header.Set("X-Content-Type-Options", "nosniff")
 	header.Set("Cache-Control", "no-store")
-	header.Set("Content-Security-Policy", uiContentSecurityPolicy)
+	header.Set("Content-Security-Policy", policy)
 	header.Set("Referrer-Policy", "no-referrer")
 }
 

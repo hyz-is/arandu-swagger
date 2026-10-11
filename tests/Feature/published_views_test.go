@@ -173,9 +173,8 @@ func TestPublishedTopbarWritesNoTargetWhenNoneIsGiven(t *testing.T) {
 	}
 }
 
-// documentedPolicy returns the content security policy docs/assets-csp.md
-// states, which is the one the UI route promises to send.
-func documentedPolicy(t *testing.T) string {
+// assetsCSPDoc returns docs/assets-csp.md.
+func assetsCSPDoc(t *testing.T) string {
 	t.Helper()
 	_, filename, _, ok := runtime.Caller(0)
 	if !ok {
@@ -185,39 +184,101 @@ func documentedPolicy(t *testing.T) string {
 	if err != nil {
 		t.Fatalf("read docs/assets-csp.md: %v", err)
 	}
-	for _, line := range strings.Split(string(doc), "\n") {
+	return string(doc)
+}
+
+// documentedPolicies returns the two content security policies
+// docs/assets-csp.md states, in the order it states them: the one the
+// docs.swagger view answers with, then the one the embedded page answers with.
+func documentedPolicies(t *testing.T) (viewPolicy, embeddedPolicy string) {
+	t.Helper()
+	var policies []string
+	for _, line := range strings.Split(assetsCSPDoc(t), "\n") {
 		if strings.HasPrefix(line, "default-src ") {
-			return line
+			policies = append(policies, line)
 		}
 	}
-	t.Fatal("docs/assets-csp.md states no policy")
-	return ""
+	if len(policies) != 2 {
+		t.Fatalf("docs/assets-csp.md states %d policies, want the view's and the embedded page's: %q", len(policies), policies)
+	}
+	return policies[0], policies[1]
+}
+
+// directives splits a content security policy into its directives, keyed by
+// name, failing on a directive named twice.
+func directives(t *testing.T, policy string) map[string]string {
+	t.Helper()
+	out := map[string]string{}
+	for _, part := range strings.Split(policy, ";") {
+		name, value, _ := strings.Cut(strings.TrimSpace(part), " ")
+		if _, dup := out[name]; dup {
+			t.Fatalf("policy %q names %s twice", policy, name)
+		}
+		out[name] = value
+	}
+	return out
 }
 
 func TestUIRouteSendsTheDocumentedHeadersFromTheViewAndTheEmbeddedPage(t *testing.T) {
 	t.Parallel()
 
-	want := map[string]string{
-		"Content-Security-Policy": documentedPolicy(t),
-		"Referrer-Policy":         "no-referrer",
-		"Cache-Control":           "no-store",
-		"X-Content-Type-Options":  "nosniff",
-		"Content-Type":            "text/html; charset=utf-8",
+	viewPolicy, embeddedPolicy := documentedPolicies(t)
+	shared := map[string]string{
+		"Referrer-Policy":        "no-referrer",
+		"Cache-Control":          "no-store",
+		"X-Content-Type-Options": "nosniff",
+		"Content-Type":           "text/html; charset=utf-8",
 	}
 
 	viewRouter := mountRendered(t, enabledConfig())
 	renderedPage(t, viewRouter, "/docs")
 	embeddedRouter, _ := mount(t, enabledConfig())
 
-	for name, router := range map[string]*fhttp.Router{"the docs.swagger view": viewRouter, "the embedded page": embeddedRouter} {
-		response := request(router, "/docs")
+	for _, tc := range []struct {
+		name   string
+		router *fhttp.Router
+		policy string
+	}{
+		{"the docs.swagger view", viewRouter, viewPolicy},
+		{"the embedded page", embeddedRouter, embeddedPolicy},
+	} {
+		response := request(tc.router, "/docs")
 		if response.Code != http.StatusOK {
-			t.Fatalf("%s answered %d", name, response.Code)
+			t.Fatalf("%s answered %d", tc.name, response.Code)
 		}
-		for header, value := range want {
+		if got := response.Header().Get("Content-Security-Policy"); got != tc.policy {
+			t.Errorf("%s: Content-Security-Policy = %q, want %q", tc.name, got, tc.policy)
+		}
+		for header, value := range shared {
 			if got := response.Header().Get(header); got != value {
-				t.Errorf("%s: %s = %q, want %q", name, header, got, value)
+				t.Errorf("%s: %s = %q, want %q", tc.name, header, got, value)
 			}
+		}
+	}
+}
+
+func TestViewPolicyAdmitsOnlyFormsToItsOwnOriginAndChangesNothingElse(t *testing.T) {
+	t.Parallel()
+
+	view := directives(t, request(mountRendered(t, enabledConfig()), "/docs").Header().Get("Content-Security-Policy"))
+	embeddedRouter, _ := mount(t, enabledConfig())
+	embedded := directives(t, request(embeddedRouter, "/docs").Header().Get("Content-Security-Policy"))
+
+	if got := view["form-action"]; got != "'self'" {
+		t.Errorf("the view's form-action = %q, want 'self': a form in the application's layout submits to the application", got)
+	}
+	if got := embedded["form-action"]; got != "'none'" {
+		t.Errorf("the embedded page's form-action = %q, want 'none': that page draws no form a browser submits", got)
+	}
+	if len(view) != len(embedded) {
+		t.Errorf("the view's policy has %d directives and the embedded page's %d:\nview:     %v\nembedded: %v", len(view), len(embedded), view, embedded)
+	}
+	for name, value := range embedded {
+		if name == "form-action" {
+			continue
+		}
+		if got := view[name]; got != value {
+			t.Errorf("the view's %s = %q, want the embedded page's %q", name, got, value)
 		}
 	}
 }
