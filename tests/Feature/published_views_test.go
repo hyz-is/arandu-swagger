@@ -47,7 +47,7 @@ import (
 var compiledViewSources = map[string]string{
 	"container.kyse.go": "b13a78e0732c3f396cb6dfaac565504deb5199fd55dac51f5fffd44b7c987977",
 	"header.kyse.go":    "eb6c99d28bd22bebac86df016de9bad8b398af953af05d8b38a6d6ac5e8f9ea9",
-	"swagger.kyse.go":   "3d88937ceab17fc78d6acd7f95df93ff10c6fad777522e20aace4108ea6a60a3",
+	"swagger.kyse.go":   "1d9adca6c62e30724582851c95ebf1c3915f8ad7e879496a0bacc8eea446010e",
 	"topbar.kyse.go":    "b94ad1044d0fb43ee78a6f67e43fbf57657fa211d5acbe083fcac261a25726f5",
 }
 

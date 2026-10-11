@@ -11,8 +11,9 @@ type SwaggerViewData = swagger.SwaggerViewData
 @endgo
 
 {{--
-Layout padrão dedicado do Swagger UI.
-Para utilizar dentro do layout principal da sua aplicação (ex: layouts.app):
+The documentation page on its own, with the package's topbar.
+To draw it inside the application's main layout instead (for example
+layouts.app), replace the document below with:
 
 @extends('layouts.app')
 

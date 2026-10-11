@@ -44,7 +44,7 @@ func renderDocsSwagger(kyse__w kyse__io.Writer, kyse__data any) error {
 		_, kyse__err = kyse__io.WriteString(kyse__w, "<html lang=\"")
 	}
 	if kyse__err == nil {
-//line resources/views/docs/swagger.kyse.go:31
+//line resources/views/docs/swagger.kyse.go:32
 		_, kyse__err = kyse__io.WriteString(kyse__w, kyse__view.TextAttr(kyse__d.Locale))
 //line storage/framework/views/docs/swagger.go:50
 	}
@@ -64,7 +64,7 @@ func renderDocsSwagger(kyse__w kyse__io.Writer, kyse__data any) error {
 		_, kyse__err = kyse__io.WriteString(kyse__w, "\t<title>")
 	}
 	if kyse__err == nil {
-//line resources/views/docs/swagger.kyse.go:35
+//line resources/views/docs/swagger.kyse.go:36
 		_, kyse__err = kyse__io.WriteString(kyse__w, kyse__template.HTMLEscapeString(kyse__view.Text(kyse__d.Title)))
 //line storage/framework/views/docs/swagger.go:70
 	}
@@ -76,11 +76,11 @@ func renderDocsSwagger(kyse__w kyse__io.Writer, kyse__data any) error {
 	}
 	if kyse__err == nil {
 		var kyse__v1 string
-//line resources/views/docs/swagger.kyse.go:36
+//line resources/views/docs/swagger.kyse.go:37
 		kyse__v1, kyse__err = kyse__view.TextURL(kyse__d.FaviconOrDefault())
 //line storage/framework/views/docs/swagger.go:82
 		if kyse__err != nil {
-			kyse__err = kyse__fmt.Errorf("%s: %w", "resources/views/docs/swagger.kyse.go:36", kyse__err)
+			kyse__err = kyse__fmt.Errorf("%s: %w", "resources/views/docs/swagger.kyse.go:37", kyse__err)
 		} else {
 			_, kyse__err = kyse__io.WriteString(kyse__w, kyse__v1)
 		}
