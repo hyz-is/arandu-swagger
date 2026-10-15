@@ -46,25 +46,51 @@ The two pages answer with one policy that differs in its last directive,
 `form-action`, and in nothing else. The `docs.swagger` view answers with:
 
 ```text
-default-src 'none'; style-src 'self'; style-src-attr 'unsafe-inline'; script-src 'self'; img-src 'self' data: https:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'
+default-src 'none'; style-src 'self'; style-src-attr 'unsafe-inline'; script-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'
 ```
 
 and the embedded page with:
 
 ```text
-default-src 'none'; style-src 'self'; style-src-attr 'unsafe-inline'; script-src 'self'; img-src 'self' data: https:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'
+default-src 'none'; style-src 'self'; style-src-attr 'unsafe-inline'; script-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'
 ```
 
 `script-src`, `style-src`, and `connect-src` require the same origin. Inline
 scripts and inline style blocks remain forbidden. Swagger UI 5.x applies style
 attributes at runtime, so the policy contains the narrow CSP3
 `style-src-attr 'unsafe-inline'` exception required for the vendored UI to render;
-it does not widen `script-src` or `style-src`. `img-src` admits `https:` so a
-`Theme.Logo` may be an absolute HTTPS URL. `frame-ancestors 'none'` prevents
+it does not widen `script-src` or `style-src`. `frame-ancestors 'none'` prevents
 framing, and `base-uri` is disabled. Try it out sends its requests with
 `fetch`, which `connect-src` governs, so it works only against a same-origin
 server under the built-in policy. A cross-origin API requires an explicit
 application or proxy decision about both CSP and CORS.
+
+Those are the policies of a configuration that loads no image from another
+origin. `img-src` admits the page's own origin and `data:` URIs, and beyond
+them exactly the origins the configuration names, never a whole scheme such
+as `https:`:
+
+- the origin of `Theme.Logo.URL` when it is an absolute URL;
+- the origin of `Theme.Favicon` when it is an absolute URL;
+- every entry of `ImageOrigins`, for images the page draws from elsewhere,
+  such as one in an API description, a custom stylesheet, or a layout the
+  view extends.
+
+Each is written once, as scheme, host and port, in that order, after
+`'self' data:`. A logo at `https://cdn.example.com/brand/logo.svg` and
+`ImageOrigins: []string{"https://img.example.org:8443"}` give:
+
+```text
+img-src 'self' data: https://cdn.example.com https://img.example.org:8443
+```
+
+The logo's path is not written into the directive. `New` refuses an absolute
+logo or favicon URL that does not use `https`, a protocol-relative one, one
+carrying credentials, and one whose host is a wildcard or an IPv6 literal. It
+refuses an `ImageOrigins` entry that is not an `https` origin or that carries
+a wildcard, a path, a query or a fragment. A same-origin path and a `data:`
+URI add nothing to the directive. Any other image the page refers to is
+blocked by the browser.
 
 The view's policy covers the whole page the view draws. A published view
 changed to extend an application layout therefore answers under it too: that

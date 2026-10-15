@@ -80,8 +80,15 @@ generation. Set only `DisableUI` to expose JSON without an interactive UI.
 | `CacheSpec` | false | caches serialized JSON until registry or route-table metadata changes |
 | `PersistAuthorization` | false | asks Swagger UI to retain authorization data in the browser |
 | `DisableTryItOut` | false | removes all interactive submit methods from Swagger UI |
+| `ImageOrigins` | empty | exact `https` origins the UI page may load images from, beyond its own, `data:` URIs, and the origins of an absolute `Theme.Logo.URL` and `Theme.Favicon` |
 | `UIMiddleware` | empty | wraps the UI, initializer, redirect, and asset handlers |
 | `SpecMiddleware` | empty | wraps only the OpenAPI JSON handler |
+
+`ImageOrigins` entries name an origin and nothing else, such as
+`https://cdn.example.com` or `https://img.example.org:8443`; a path, query,
+fragment, wildcard, or scheme other than `https` is rejected, as is an absolute
+`Theme.Logo.URL` or `Theme.Favicon` that does not use `https`. See
+[embedded assets and CSP](assets-csp.md) for the `img-src` directive they build.
 
 Nil middleware values are rejected. See [filters](filters.md) and
 [production](production.md) for the security and lifecycle implications.

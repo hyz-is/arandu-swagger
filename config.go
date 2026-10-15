@@ -3,7 +3,10 @@ package swagger
 import (
 	"fmt"
 	"net/http"
+	"net/url"
 	"path"
+	"slices"
+	"strconv"
 	"strings"
 	"unicode"
 
@@ -132,6 +135,14 @@ type Config struct {
 	// Theme configures visual styling, dark mode, colors, branding, and HTMX behavior.
 	Theme Theme
 
+	// ImageOrigins lists the exact HTTPS origins, such as
+	// "https://cdn.example.com", beyond its own origin and data: URIs that the
+	// UI page may load images from, for example an image in an API description.
+	// The origin of an absolute Theme.Logo.URL or Theme.Favicon is admitted
+	// without being listed here. Each entry is a scheme and host with an
+	// optional port; a path, wildcard, or scheme other than https is rejected.
+	ImageOrigins []string
+
 	// UIMiddleware wraps the UI and embedded asset handlers in declaration order.
 	UIMiddleware []Middleware
 	// SpecMiddleware wraps the OpenAPI JSON handler in declaration order.
@@ -177,6 +188,8 @@ type Theme struct {
 	// DisableThemeToggle hides the light/dark theme switch in the topbar.
 	DisableThemeToggle bool
 	// Favicon is the URL to a custom favicon (e.g. "/favicon.ico" or "/favicon.png").
+	// It follows the rules of ThemeLogo.URL: an absolute URL must use https, and
+	// its origin is added to the page's img-src directive.
 	Favicon string
 	// CustomCSS is custom CSS appended to the theme stylesheet.
 	CustomCSS string
@@ -188,7 +201,9 @@ type Theme struct {
 
 // ThemeLogo configures the brand logo in the Swagger UI topbar.
 type ThemeLogo struct {
-	// URL is the image URL or data URI of the logo.
+	// URL is the image URL or data URI of the logo. A same-origin path or a
+	// data URI needs nothing more; an absolute URL must use https, and its
+	// origin is added to the page's img-src directive.
 	URL string
 	// Href is the link target when clicking the logo (defaults to "/").
 	Href string
@@ -266,6 +281,9 @@ func validateOperationalConfig(c Config) []error {
 
 	if c.Theme.Logo != nil && strings.TrimSpace(c.Theme.Logo.URL) == "" {
 		issues = append(issues, fmt.Errorf("swagger: Config.Theme.Logo.URL must not be blank when Logo is configured"))
+	}
+	if _, err := imageOrigins(c); err != nil {
+		issues = append(issues, err)
 	}
 
 	for index, middleware := range c.UIMiddleware {
@@ -357,6 +375,7 @@ func cloneConfig(source Config) Config {
 	copy.Filter = cloneRouteFilter(source.Filter)
 	copy.Translations = cloneTranslations(source.Translations)
 	copy.Theme = cloneTheme(source.Theme)
+	copy.ImageOrigins = append([]string(nil), source.ImageOrigins...)
 	copy.UIMiddleware = append([]Middleware(nil), source.UIMiddleware...)
 	copy.SpecMiddleware = append([]Middleware(nil), source.SpecMiddleware...)
 	return copy
@@ -501,4 +520,148 @@ func overlappingValue(include, exclude []string, foldCase bool) (string, bool) {
 		}
 	}
 	return "", false
+}
+
+// imageOrigins returns the origins the UI page's img-src directive admits
+// beyond 'self' and data:, each once and in the order the configuration names
+// them: the origin of an absolute Theme.Logo.URL, of an absolute
+// Theme.Favicon, then every ImageOrigins entry. A same-origin path or a data:
+// URI adds nothing. It reports the first configured value that is not one of
+// those or an https URL whose origin the directive can name exactly.
+func imageOrigins(c Config) ([]string, error) {
+	var origins []string
+	add := func(origin string) {
+		if origin == "" || slices.Contains(origins, origin) {
+			return
+		}
+		origins = append(origins, origin)
+	}
+
+	if c.Theme.Logo != nil && strings.TrimSpace(c.Theme.Logo.URL) != "" {
+		origin, err := imageURLOrigin("Config.Theme.Logo.URL", c.Theme.Logo.URL)
+		if err != nil {
+			return nil, err
+		}
+		add(origin)
+	}
+	if c.Theme.Favicon != "" {
+		origin, err := imageURLOrigin("Config.Theme.Favicon", c.Theme.Favicon)
+		if err != nil {
+			return nil, err
+		}
+		add(origin)
+	}
+	for index, entry := range c.ImageOrigins {
+		origin, err := exactImageOrigin(fmt.Sprintf("Config.ImageOrigins[%d]", index), entry)
+		if err != nil {
+			return nil, err
+		}
+		add(origin)
+	}
+	return origins, nil
+}
+
+// imageURLOrigin returns the origin an image URL is loaded from when that
+// origin is not the page's own: empty for a data: URI or a same-origin
+// reference, the https origin of an absolute URL, and an error for anything
+// else.
+func imageURLOrigin(field, raw string) (string, error) {
+	if strings.HasPrefix(strings.ToLower(raw), "data:") {
+		return "", nil
+	}
+	if err := rejectSpaceAndControl(field, raw); err != nil {
+		return "", err
+	}
+	parsed, err := url.Parse(raw)
+	if err != nil {
+		return "", fmt.Errorf("swagger: %s %q is not a valid URL: %w", field, raw, err)
+	}
+	if parsed.Scheme == "" && parsed.Host == "" && !strings.HasPrefix(raw, "//") {
+		return "", nil
+	}
+	if parsed.Scheme != "https" {
+		return "", fmt.Errorf("swagger: %s %q must be a same-origin path, a data: URI, or an absolute https URL", field, raw)
+	}
+	return httpsOrigin(field, raw, parsed)
+}
+
+// exactImageOrigin validates one ImageOrigins entry, which names an origin
+// and nothing more, and returns it in the form the directive writes.
+func exactImageOrigin(field, raw string) (string, error) {
+	if err := rejectSpaceAndControl(field, raw); err != nil {
+		return "", err
+	}
+	if strings.Contains(raw, "*") {
+		return "", fmt.Errorf("swagger: %s %q must name one exact origin, not a wildcard", field, raw)
+	}
+	parsed, err := url.Parse(raw)
+	if err != nil {
+		return "", fmt.Errorf("swagger: %s %q is not a valid URL: %w", field, raw, err)
+	}
+	if parsed.Scheme != "https" || parsed.Host == "" {
+		return "", fmt.Errorf("swagger: %s %q must be an https origin such as \"https://cdn.example.com\"", field, raw)
+	}
+	if parsed.Opaque != "" || (parsed.Path != "" && parsed.Path != "/") || parsed.RawQuery != "" || parsed.ForceQuery || parsed.Fragment != "" {
+		return "", fmt.Errorf("swagger: %s %q must be an origin without a path, query, or fragment", field, raw)
+	}
+	return httpsOrigin(field, raw, parsed)
+}
+
+// httpsOrigin returns the scheme, host, and port of an https URL as a CSP
+// host source. The host is lowercased and the default port dropped. A host
+// the CSP grammar cannot name exactly, such as a wildcard or an IPv6 literal,
+// and a URL carrying credentials are rejected.
+func httpsOrigin(field, raw string, parsed *url.URL) (string, error) {
+	if parsed.User != nil {
+		return "", fmt.Errorf("swagger: %s %q must not carry credentials", field, raw)
+	}
+	host := strings.ToLower(parsed.Hostname())
+	if strings.Contains(host, "*") {
+		return "", fmt.Errorf("swagger: %s %q must name one exact host, not a wildcard", field, raw)
+	}
+	if !validSourceHost(host) {
+		return "", fmt.Errorf("swagger: %s %q must name a host made of letters, digits, hyphens, and dots", field, raw)
+	}
+	origin := "https://" + host
+	if port := parsed.Port(); port != "" {
+		number, err := strconv.Atoi(port)
+		if err != nil || number < 1 || number > 65535 {
+			return "", fmt.Errorf("swagger: %s %q has an invalid port", field, raw)
+		}
+		if number != 443 {
+			origin += ":" + strconv.Itoa(number)
+		}
+	} else if strings.HasSuffix(parsed.Host, ":") {
+		return "", fmt.Errorf("swagger: %s %q has an invalid port", field, raw)
+	}
+	return origin, nil
+}
+
+// validSourceHost reports whether host is a non-empty sequence of dot-separated
+// labels of ASCII letters, digits, and hyphens, which is all a CSP host source
+// can name without a wildcard.
+func validSourceHost(host string) bool {
+	if host == "" {
+		return false
+	}
+	for _, label := range strings.Split(host, ".") {
+		if label == "" || label[0] == '-' || label[len(label)-1] == '-' {
+			return false
+		}
+		for _, character := range label {
+			if !(character >= 'a' && character <= 'z' || character >= '0' && character <= '9' || character == '-') {
+				return false
+			}
+		}
+	}
+	return true
+}
+
+func rejectSpaceAndControl(field, raw string) error {
+	if strings.IndexFunc(raw, func(r rune) bool {
+		return unicode.IsSpace(r) || unicode.IsControl(r)
+	}) >= 0 {
+		return fmt.Errorf("swagger: %s %q must not contain whitespace or control characters", field, raw)
+	}
+	return nil
 }

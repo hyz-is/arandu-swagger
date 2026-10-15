@@ -20,23 +20,42 @@ import (
 	"github.com/hyz-is/arandu-swagger/internal/ui"
 )
 
-// uiPolicyDirectives is the content security policy of the UI page up to its
-// last directive, form-action, which is the only one the two pages that answer
-// the route need differently.
-const uiPolicyDirectives = "default-src 'none'; style-src 'self'; style-src-attr 'unsafe-inline'; script-src 'self'; img-src 'self' data: https:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action "
+// uiPolicyBefore and uiPolicyAfter are the content security policy of the UI
+// page around its img-src sources and before the value of its last directive,
+// form-action. The image sources depend on the configuration, and form-action
+// is the only directive the two pages that answer the route need differently.
+const (
+	uiPolicyBefore = "default-src 'none'; style-src 'self'; style-src-attr 'unsafe-inline'; script-src 'self'; img-src 'self' data:"
+	uiPolicyAfter  = "; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action "
+)
 
 const (
-	// viewContentSecurityPolicy answers when the application's docs.swagger
-	// view draws the page. That view may extend the application's layout, and a
-	// form in a layout, such as signing out, submits to the application, so
-	// form-action admits this origin and no other.
-	viewContentSecurityPolicy = uiPolicyDirectives + "'self'"
+	// viewFormAction answers when the application's docs.swagger view draws
+	// the page. That view may extend the application's layout, and a form in a
+	// layout, such as signing out, submits to the application, so form-action
+	// admits this origin and no other.
+	viewFormAction = "'self'"
 
-	// embeddedContentSecurityPolicy answers when the embedded page draws it.
-	// That page has no form a browser submits: Swagger UI handles its own forms
-	// in script and sends its requests with fetch, which connect-src governs.
-	embeddedContentSecurityPolicy = uiPolicyDirectives + "'none'"
+	// embeddedFormAction answers when the embedded page draws it. That page has
+	// no form a browser submits: Swagger UI handles its own forms in script and
+	// sends its requests with fetch, which connect-src governs.
+	embeddedFormAction = "'none'"
 )
+
+// uiContentSecurityPolicy returns the UI page's policy with formAction as the
+// value of form-action. Its img-src admits the page's own origin, data: URIs,
+// and exactly the origins the configuration names, never a whole scheme.
+func uiContentSecurityPolicy(origins []string, formAction string) string {
+	var policy strings.Builder
+	policy.WriteString(uiPolicyBefore)
+	for _, origin := range origins {
+		policy.WriteByte(' ')
+		policy.WriteString(origin)
+	}
+	policy.WriteString(uiPolicyAfter)
+	policy.WriteString(formAction)
+	return policy.String()
+}
 
 var (
 	_ foundation.Module      = (*Module)(nil)
@@ -59,6 +78,11 @@ type Module struct {
 	generationMu sync.Mutex
 	cache        specificationCache
 
+	// viewPolicy and embeddedPolicy are the content security policies the UI
+	// route answers with, built once from the configuration.
+	viewPolicy     string
+	embeddedPolicy string
+
 	diagnosticMu sync.RWMutex
 	lastError    error
 }
@@ -77,9 +101,16 @@ func New(cfg Config) (*Module, error) {
 		return nil, err
 	}
 
+	snapshot := cloneConfig(cfg.withDefaults())
+	// A disabled configuration is not validated and registers no route, so an
+	// image URL it names that would be refused is left out of a policy nothing
+	// sends.
+	origins, _ := imageOrigins(snapshot)
 	return &Module{
-		cfg:      cloneConfig(cfg.withDefaults()),
-		registry: NewRegistry(),
+		cfg:            snapshot,
+		registry:       NewRegistry(),
+		viewPolicy:     uiContentSecurityPolicy(origins, viewFormAction),
+		embeddedPolicy: uiContentSecurityPolicy(origins, embeddedFormAction),
 	}, nil
 }
 
@@ -297,7 +328,7 @@ func (m *Module) serveUIAction(ctx *fhttp.Context) error {
 	// its content type, so nothing below replaces these. When no view answers,
 	// nothing has been written yet, and serveUI puts the embedded page's policy
 	// in place of this one.
-	setUIPageHeaders(ctx.Response, viewContentSecurityPolicy)
+	setUIPageHeaders(ctx.Response, m.viewPolicy)
 
 	viewName := m.cfg.ViewName
 	if viewName == "" {
@@ -403,7 +434,7 @@ func (m *Module) page(ctx *fhttp.Context, title, brand, homeURL string) view.Pag
 // serveUI writes the embedded page. It runs only from serveUIAction, when no
 // view by the configured name is registered.
 func (m *Module) serveUI(w http.ResponseWriter, _ *http.Request) {
-	setUIPageHeaders(w, embeddedContentSecurityPolicy)
+	setUIPageHeaders(w, m.embeddedPolicy)
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 

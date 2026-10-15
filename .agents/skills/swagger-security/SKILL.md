@@ -20,6 +20,9 @@ configuration.
   diagnostics retain the actionable error for operators.
 - UI assets are embedded, same-origin, allowlisted, and served with `nosniff`.
 - The UI CSP permits no inline scripts and limits connections to self.
+- The UI CSP loads images only from self, `data:` URIs, and the exact https
+  origins the configuration names (an absolute logo or favicon URL and
+  `ImageOrigins`); never widen `img-src` to a whole scheme.
 
 `IncludeUndocumented`, `IncludeInternal`, and `PersistAuthorization` widen
 exposure or retention and require an explicit application decision.
