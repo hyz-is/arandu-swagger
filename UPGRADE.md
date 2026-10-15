@@ -1,5 +1,68 @@
 # Upgrade Guide
 
+## v0.4.7 — the docs page loads images only from the origins it is given
+
+`apidiff` against `v0.4.6` reports one compatible addition and nothing else:
+`Config.ImageOrigins`. What moved is the `img-src` directive of the policy
+the UI route answers with, and what `New` accepts as a logo or favicon URL.
+
+### `img-src` no longer admits every https origin
+
+Since v0.4.0 both pages answered with `img-src 'self' data: https:`, so the
+docs page could load an image from any https origin, and an application could
+not narrow it. The directive is now built from the configuration: the page's
+own origin and `data:` URIs, and beyond them only the origins it names. With
+no image from another origin configured, both pages answer with:
+
+```text
+Content-Security-Policy: default-src 'none'; style-src 'self'; style-src-attr 'unsafe-inline'; script-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'
+```
+
+with `form-action 'none'` on the embedded page, as before. Every other
+directive is unchanged.
+
+The origin of an absolute `Theme.Logo.URL` and of an absolute `Theme.Favicon`
+is added on its own, as scheme, host and port, without the path. A
+configuration with `Theme.Logo.URL: "https://cdn.example.com/brand/logo.svg"`
+answers with `img-src 'self' data: https://cdn.example.com`, so an
+application whose logo or favicon is an https URL keeps working without a
+change. A same-origin path or a `data:` URI adds nothing and needs nothing.
+
+### Images from anywhere else are listed in `ImageOrigins`
+
+An image the page draws from another origin that is not the logo or the
+favicon is now blocked by the browser. That covers an image in an API or
+operation description, a `url(...)` in `Theme.CustomCSS`, and an image in a
+layout the `docs.swagger` view extends. An application relying on one lists
+its exact origin:
+
+```go
+swagger.Config{
+	// ...
+	ImageOrigins: []string{"https://img.example.org", "https://cdn.example.com:8443"},
+}
+```
+
+Each entry is an `https` origin and nothing more. There is no way to admit
+every https origin again.
+
+### `New` refuses an image URL the directive cannot name exactly
+
+When documentation is enabled, `New` and `Config.Validate` now return an error
+naming the field for:
+
+- a `Theme.Logo.URL` or `Theme.Favicon` that is an absolute URL not using
+  `https`, such as `http://…` or `javascript:…`, or a protocol-relative
+  `//host/…`;
+- one that carries credentials, has a wildcard or IPv6-literal host, an
+  invalid port, or whitespace or control characters;
+- an `ImageOrigins` entry that is not an `https` origin, or that carries a
+  wildcard, a path, a query or a fragment.
+
+An `http` logo or favicon on another origin was already blocked by the
+browser under `https:`; one with credentials or an IPv6-literal host was not,
+and is now refused at boot instead. `Generate` reports the same errors. A disabled `Config` stays valid whatever it names.
+
 ## v0.4.6 — the docs view works inside the application's layout
 
 `apidiff` against `v0.4.5` reports no change at all. What moved is how the UI
