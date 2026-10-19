@@ -1,5 +1,34 @@
 # Upgrade Guide
 
+## v0.4.8 — components derived from the Go types an application answers with
+
+`apidiff` against `v0.4.7` reports compatible additions and nothing else:
+`Model`, `ModelOf`, `SchemasFromModels`, `Registry.Models` and
+`Module.Models`. Nothing an application already registers changes, and the
+generated document of an application that does not call them is the same.
+
+### A payload described twice can be described once
+
+An application that kept a schema for a payload in a string handed to
+`SchemaFromJSON`, or rebuilt it with `jsonschema` builders beside the struct it
+encodes, can derive it from the struct:
+
+```go
+// Before
+schema, err := swagger.SchemaFromJSON([]byte(`{"type":"object","required":["id"],"properties":{"id":{"type":"string"}}}`))
+err = docs.SchemaComponent("Product", schema)
+
+// After
+err := docs.Models(swagger.ModelOf[resources.Product]("Product"))
+```
+
+Compare the generated document before and after. The derivation writes what
+`encoding/json` writes, so a difference is a place where the hand-written
+schema and the answer already disagreed: a field without `omitempty` is
+required, a pointer is nullable, and `int64` is `integer` with no `format`.
+The `doc`, `format` and `enum` struct tags carry the description, the format
+and the values a type cannot say.
+
 ## v0.4.7 — the docs page loads images only from the origins it is given
 
 `apidiff` against `v0.4.6` reports one compatible addition and nothing else:

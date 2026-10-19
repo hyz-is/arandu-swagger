@@ -12,7 +12,8 @@ explicit beside each route.
 The package is intentionally an Arandu module rather than a second framework:
 
 - it uses `framework/http` and the public Hesape route metadata;
-- it accepts native `hesape/jsonschema` schemas;
+- it accepts native `hesape/jsonschema` schemas, and derives components from
+  the Go types an application answers with;
 - its registry belongs to one `swagger.Module` instance;
 - it generates lazily after application boot and can cache serialized JSON;
 - its Swagger UI 5.32.14 assets are embedded and served from the same origin;
@@ -70,6 +71,23 @@ if err := docs.SecurityScheme("bearerAuth", swagger.HTTPBearer("JWT")); err != n
 	return App{}, err
 }
 ```
+
+When a payload is a Go type the application already encodes, derive its
+component from the type instead of describing it a second time:
+
+```go
+if err := docs.Models(
+	swagger.ModelOf[resources.User]("User"),
+	swagger.ModelOf[resources.Page[resources.User]]("UserPage"),
+); err != nil {
+	return App{}, err
+}
+```
+
+A field is named by its `json` tag and required unless it is `omitempty`; a
+pointer is nullable, a type another model names is a `$ref`, and the `doc`,
+`format` and `enum` struct tags say what the type cannot. See
+[Schemas and components](docs/schemas-components.md#components-derived-from-go-types).
 
 When an existing OpenAPI contract uses Schema Object keywords outside the
 native Hesape builder set, import that individual schema through the validated

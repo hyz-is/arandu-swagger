@@ -63,6 +63,80 @@ represent faithfully.
 
 Component names must contain only letters, digits, `.`, `_`, and `-`.
 
+## Components derived from Go types
+
+The payload an application answers with is usually a Go type it hands to
+`encoding/json`. Describing that payload again with builders is a second copy
+of the contract, and the copy drifts: a field renamed in the struct and not in
+the schema is a client generated against a property the server stopped
+sending. `Models` derives the component from the type itself:
+
+```go
+type Card struct {
+	Brand string  `json:"brand"`
+	Last4 *string `json:"last4"`
+}
+
+type PaymentMethod struct {
+	ID        string    `json:"id"`
+	Type      string    `json:"type" enum:"card"`
+	Card      Card      `json:"card"`
+	Amount    int64     `json:"amount_cents" doc:"Amount in cents."`
+	CreatedAt time.Time `json:"created_at"`
+	Note      string    `json:"note,omitempty"`
+}
+
+type Envelope[T any] struct {
+	Data T `json:"data"`
+}
+
+if err := docs.Models(
+	swagger.ModelOf[Card]("Card"),
+	swagger.ModelOf[PaymentMethod]("PaymentMethod"),
+	swagger.ModelOf[Envelope[PaymentMethod]]("PaymentMethodEnvelope"),
+); err != nil {
+	return err
+}
+```
+
+`PaymentMethod` becomes:
+
+```json
+{"type":"object","required":["id","type","card","amount_cents","created_at"],"properties":{
+  "id":{"type":"string"},"type":{"type":"string","enum":["card"]},
+  "card":{"$ref":"#/components/schemas/Card"},
+  "amount_cents":{"type":"integer","description":"Amount in cents."},
+  "created_at":{"type":"string","format":"date-time"},"note":{"type":"string"}}}
+```
+
+The derivation follows what `encoding/json` writes:
+
+| Go | schema |
+| --- | --- |
+| a struct | an object of its exported fields, named and skipped by their `json` tags, in declaration order; an embedded struct's fields are promoted |
+| a field without `omitempty` or `omitzero` | required, because it is always written |
+| `string`, `bool`, every integer, `float32`, `float64` | `string`, `boolean`, `integer`, `number` |
+| `time.Time` | a `string` of format `date-time` |
+| a slice or an array | an `array` of its element |
+| a map with string keys | an `object` whose `additionalProperties` is its value |
+| `json.RawMessage`, an interface | any value, `{}` |
+| a pointer | its element or null: `["string","null"]`, or `anyOf` with `{"type":"null"}` for an object, an array or a reference |
+| a struct type another model names | a `$ref` to that component, wherever it appears below the root |
+
+Three struct tags say what the type cannot: `doc` is the description,
+`format` the format, and `enum` the values, comma-separated. Keywords are
+written in one fixed order, so the same types derive the same bytes.
+
+A type the derivation cannot say -- a channel, a function, a map with keys
+that are not strings, `[]byte`, an unnamed struct that contains itself -- and
+a `json` option it does not follow, such as `string`, are errors naming the
+model and the field. Every derived schema passes the validation
+`SchemaFromJSON` applies. `SchemasFromModels` answers the same schemas without
+registering them.
+
+A nil slice or map is written by `encoding/json` as `null`, while the schema
+says `array` or `object`: fill them, or declare the field as a pointer.
+
 ## References and inline schemas
 
 Use `JSON(native)` for an inline JSON Schema and `JSONRef(name)` for a local
@@ -100,6 +174,7 @@ One module instance can register:
 | --- | --- |
 | `Schema` | `schemas` |
 | `SchemaComponent` | `schemas` imported through `SchemaFromJSON` |
+| `Models` | `schemas` derived from Go types |
 | `Parameter` | `parameters` |
 | `Response` | `responses` |
 | `RequestBody` | `requestBodies` |

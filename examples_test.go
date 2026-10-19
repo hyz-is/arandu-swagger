@@ -1,6 +1,7 @@
 package swagger_test
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -81,4 +82,29 @@ func ExampleGenerateJSON() {
 	}
 	fmt.Println(len(data) > 0)
 	// Output: true
+}
+
+func ExampleSchemasFromModels() {
+	type Card struct {
+		Brand string  `json:"brand"`
+		Last4 *string `json:"last4"`
+	}
+	type PaymentMethod struct {
+		ID   string `json:"id"`
+		Type string `json:"type" enum:"card"`
+		Card Card   `json:"card"`
+		Note string `json:"note,omitempty" doc:"What the customer called it."`
+	}
+
+	schemas, err := swagger.SchemasFromModels(
+		swagger.ModelOf[Card]("Card"),
+		swagger.ModelOf[PaymentMethod]("PaymentMethod"),
+	)
+	if err != nil {
+		panic(err)
+	}
+	encoded, _ := json.Marshal(schemas["PaymentMethod"])
+	fmt.Println(string(encoded))
+	// Output:
+	// {"type":"object","required":["id","type","card"],"properties":{"id":{"type":"string"},"type":{"type":"string","enum":["card"]},"card":{"$ref":"#/components/schemas/Card"},"note":{"type":"string","description":"What the customer called it."}}}
 }

@@ -30,6 +30,9 @@ Read the relevant procedure under `.agents/skills/` before changing code:
   generation and registration must remain race-free.
 - Schemas use `github.com/arandu-io/hesape/jsonschema`; this package adapts and
   validates immutable snapshots instead of introducing a competing builder.
+  `Models` derives a component from the Go type a payload already is, so the
+  contract and the encoded value cannot drift; it is a derivation, not a
+  builder, and its output passes the `SchemaFromJSON` validation.
 - Runtime code performs no filesystem access, outbound network request,
   process execution, or migration. Keep every permission in
   `arandu.mod.toml` false unless the architecture intentionally changes.
@@ -77,6 +80,7 @@ module_registry.go  component registration methods on Module
 openapi.go          typed OpenAPI 3.1 model
 registry.go         instance registry and fluent operation builders
 schema.go           Hesape JSON Schema adapter and snapshot validation
+models.go           schema components derived from Go types
 security.go         security-scheme helpers
 generator.go        route interpretation, document generation, validation
 internal/ui/        embedded Swagger UI page, initializer, and allowlisted assets
