@@ -1,5 +1,9 @@
 # Release Notes
 
+## [v0.4.9](https://github.com/hyz-is/arandu-swagger/compare/v0.4.8...v0.4.9) - 2026-10-20
+
+**Full Changelog**: https://github.com/hyz-is/arandu-swagger/compare/v0.4.8...v0.4.9
+
 ## [v0.4.8](https://github.com/hyz-is/arandu-swagger/compare/v0.4.7...v0.4.8) - 2026-10-19
 
 **Full Changelog**: https://github.com/hyz-is/arandu-swagger/compare/v0.4.7...v0.4.8
