@@ -1,5 +1,40 @@
 # Upgrade Guide
 
+## v0.4.9 — webhooks in the generated document
+
+`apidiff` against `v0.4.8` reports compatible additions and nothing else:
+`Webhook`, `Registry.Webhooks`, `Module.Webhooks` and `MediaSchema`. The
+generated document of an application that does not call them is the same: it
+has no `webhooks` key.
+
+### Webhooks a static export added by hand can be registered
+
+An application that wrote `Document.Webhooks` after `Generate` -- so its static
+contract had the section and the served `/docs` page did not -- can register
+the same values on the registry and the module, and both carry them:
+
+```go
+// Before
+doc, err := swagger.Generate(router.Routes(), registry, config)
+doc.Webhooks = swagger.Paths{"order.paid": &swagger.PathItem{Post: &swagger.Operation{ /* ... */ }}}
+
+// After: one function of the application, called with the registry of the
+// export and with the module bootstrap/app.go builds.
+err := registry.Webhooks(swagger.Webhook{
+	Name:      "order.paid",
+	Body:      []*swagger.Media{swagger.JSONRef("OrderEvent")},
+	Responses: swagger.Responses{"2XX": {Description: "Received."}},
+})
+```
+
+Generation now validates what a hand-written section was never checked for:
+each body, parameter and security reference must name a registered component,
+each response key must be `default`, a status or a `1XX`-`5XX` range, and a
+webhook's operationId must not repeat one a route or another webhook uses. A
+schema assigned straight into `Document.Components.Schemas` must be registered
+with `SchemaComponent` (or derived with `Models`) for those references to
+resolve.
+
 ## v0.4.8 — components derived from the Go types an application answers with
 
 `apidiff` against `v0.4.7` reports compatible additions and nothing else:

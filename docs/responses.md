@@ -17,7 +17,7 @@ Omit media for a response with no body:
 docs.Route(route).Response(http.StatusNoContent, "User deleted")
 ```
 
-The same `JSON`, `JSONRef`, `MediaOf`, and `MediaRef` helpers used for request
+The same `JSON`, `JSONRef`, `MediaOf`, `MediaRef`, and `MediaSchema` helpers used for request
 bodies declare response representations. `Example` and `NamedExample` are
 available on each media value.
 

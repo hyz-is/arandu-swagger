@@ -108,3 +108,51 @@ func ExampleSchemasFromModels() {
 	// Output:
 	// {"type":"object","required":["id","type","card"],"properties":{"id":{"type":"string"},"type":{"type":"string","enum":["card"]},"card":{"$ref":"#/components/schemas/Card"},"note":{"type":"string","description":"What the customer called it."}}}
 }
+
+func ExampleModule_Webhooks() {
+	type Order struct {
+		ID          string `json:"id"`
+		AmountCents int64  `json:"amount_cents"`
+	}
+	type OrderEvent struct {
+		ID   string `json:"id"`
+		Type string `json:"type"`
+		Data Order  `json:"data"`
+	}
+
+	docs, err := swagger.New(swagger.Config{
+		Enabled: true,
+		Title:   "Example API",
+		Version: "1.0.0",
+	})
+	if err != nil {
+		panic(err)
+	}
+	if err := docs.Models(swagger.ModelOf[Order]("Order"), swagger.ModelOf[OrderEvent]("OrderEvent")); err != nil {
+		panic(err)
+	}
+
+	// The application's catalogue of the events it sends.
+	events := []string{"order.created", "order.paid"}
+	webhooks := make([]swagger.Webhook, 0, len(events))
+	for _, name := range events {
+		webhooks = append(webhooks, swagger.Webhook{
+			Name:        name,
+			OperationID: "webhooks:" + name,
+			Summary:     "Sent when " + name + " happens.",
+			Body:        []*swagger.Media{swagger.JSONRef("OrderEvent")},
+			Responses:   swagger.Responses{"2XX": {Description: "Received."}},
+		})
+	}
+	if err := docs.Webhooks(webhooks...); err != nil {
+		panic(err)
+	}
+	docs.Routes(fhttp.NewRouter().ForModule(docs.Name()))
+
+	document, err := docs.Generate()
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(len(document.Webhooks), document.Webhooks["order.paid"].Post.OperationID)
+	// Output: 2 webhooks:order.paid
+}

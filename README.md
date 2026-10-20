@@ -198,6 +198,7 @@ See the focused guides for the complete surface:
 - [Request bodies](docs/request-bodies.md)
 - [Responses](docs/responses.md)
 - [Schemas and components](docs/schemas-components.md)
+- [Webhooks](docs/webhooks.md)
 - [Authentication](docs/authentication.md)
 - [Filters and exclusions](docs/filters.md)
 - [Production, cache, and middleware](docs/production.md)
@@ -206,6 +207,39 @@ See the focused guides for the complete surface:
 - [Supported and unsupported behavior](docs/compatibility.md)
 - [Adapting from the unidentified Bolt Swagger reference](docs/bolt-swagger.md)
 - [Architecture](docs/architecture.md)
+
+### Webhooks
+
+The events an API sends to its consumers' endpoints are not routes, so the
+route table cannot describe them. Register them from the application's own
+catalogue of events -- the list a subscription is validated against -- and the
+document gains its OpenAPI 3.1 `webhooks` section, which Swagger UI shows
+beside the paths:
+
+```go
+if err := docs.Models(swagger.ModelOf[resources.OrderEvent]("OrderEvent")); err != nil {
+	return App{}, err
+}
+
+webhooks := make([]swagger.Webhook, 0, len(events.Names()))
+for _, name := range events.Names() {
+	webhooks = append(webhooks, swagger.Webhook{
+		Name:        name, // "order.paid"
+		OperationID: "webhooks:" + name,
+		Summary:     "Sent when " + name + " happens.",
+		Tags:        []string{"webhooks"},
+		Body:        []*swagger.Media{swagger.JSONRef("OrderEvent")},
+		Responses:   swagger.Responses{"2XX": {Description: "Received."}},
+	})
+}
+if err := docs.Webhooks(webhooks...); err != nil {
+	return App{}, err
+}
+```
+
+`Method` defaults to `POST`, a declared body is required, and generation
+validates every reference and keeps webhook operationIds unique together with
+the routes'. `Config.Filter` selects routes only; it does not remove webhooks.
 
 ## Programmatic generation
 

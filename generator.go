@@ -132,6 +132,10 @@ func Generate(routes []*fhttp.Route, registry *Registry, config Config) (*Docume
 		}
 	}
 
+	webhooks, webhookIssues := generateWebhooks(snapshot.webhooks, snapshot.components, operationIDs)
+	issues = append(issues, webhookIssues...)
+	document.Webhooks = webhooks
+
 	issues = append(issues, validateComponents(snapshot.components)...)
 	if _, marshalErr := json.Marshal(document); marshalErr != nil {
 		issues = append(issues, fmt.Errorf("swagger: document contains a value that cannot be serialized: %w", marshalErr))

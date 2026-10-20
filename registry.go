@@ -32,6 +32,7 @@ type Documenter interface {
 type Registry struct {
 	mu         sync.RWMutex
 	routes     map[*fhttp.Route]*operationDraft
+	webhooks   map[webhookKey]*Operation
 	components Components
 	issues     []error
 	revision   uint64
@@ -705,6 +706,14 @@ func MediaRef(contentType, component string) *Media {
 	return &Media{contentType: strings.TrimSpace(contentType), schema: SchemaRef(component)}
 }
 
+// MediaSchema returns a representation with an explicit content type and an
+// already snapshotted schema, such as one SchemaFromJSON or SchemasFromModels
+// returned. Use it when the schema needs keywords native Hesape builders
+// cannot express, such as a $ref below the root.
+func MediaSchema(contentType string, schema Schema) *Media {
+	return &Media{contentType: strings.TrimSpace(contentType), schema: cloneSchema(schema)}
+}
+
 // Required marks this representation's request body required. If any
 // representation is required, the containing request body is required.
 func (m *Media) Required() *Media {
@@ -803,6 +812,7 @@ type operationDraft struct {
 
 type registrySnapshot struct {
 	routes     map[*fhttp.Route]operationDraft
+	webhooks   map[webhookKey]*Operation
 	components Components
 	issues     []error
 	revision   uint64
@@ -816,6 +826,7 @@ func (r *Registry) snapshot() (registrySnapshot, error) {
 	defer r.mu.RUnlock()
 	snapshot := registrySnapshot{
 		routes:     make(map[*fhttp.Route]operationDraft, len(r.routes)),
+		webhooks:   cloneWebhooks(r.webhooks),
 		components: cloneComponents(r.components),
 		issues:     append([]error(nil), r.issues...),
 		revision:   r.revision,

@@ -22,7 +22,8 @@ This matrix describes the first public implementation, not planned behavior.
 | Package-owned OAuth callback/client setup | not supported | identity-provider integration remains application-owned |
 | Security OR and AND requirements | supported | repeated `Security` for OR, `SecurityAll` for AND |
 | Deprecation and `x-*` extensions | supported | Arandu metadata is preserved |
-| Callbacks, webhooks, reusable path items | typed model only | no dedicated first-version registry/builder API |
+| Webhooks (OpenAPI 3.1 `webhooks`) | supported | `Registry.Webhooks` / `Module.Webhooks` with typed `Webhook` values; validated against components and operationIds |
+| Callbacks, reusable path items | typed model only | no dedicated registry/builder API |
 | External `$ref` resolution | not supported | exact reference is emitted but never fetched |
 | Full JSON Schema meta-schema validation | not supported | native builders are snapshotted as JSON objects; Hesape owns schema construction semantics |
 | Document-level default security in `Config` | not supported | operation requirements are explicit; typed document can be adjusted after `Generate` |

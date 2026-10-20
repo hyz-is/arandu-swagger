@@ -43,6 +43,10 @@ The Hesape route table is the routing source of truth. Preserve these rules:
 
 - Exclude Swagger-owned, fallback, hidden, and undocumented routes by default.
 - Treat `/_arandu` as internal unless `IncludeInternal` is enabled.
+- Webhooks are not routes: they are registered as `Webhook` values from the
+  application's event catalogue and written to the `webhooks` section only.
+  Route filters do not apply to them, and their operationIds share the
+  document's namespace with the routes'.
 - Preserve portable constraints as JSON Schema string patterns; do not infer
   integer, UUID, enum, or other semantics that route metadata cannot prove.
 - Reject optional parameters, multi-segment wildcards, non-portable regular
@@ -81,6 +85,7 @@ openapi.go          typed OpenAPI 3.1 model
 registry.go         instance registry and fluent operation builders
 schema.go           Hesape JSON Schema adapter and snapshot validation
 models.go           schema components derived from Go types
+webhooks.go         the document's webhooks section, registered as typed values
 security.go         security-scheme helpers
 generator.go        route interpretation, document generation, validation
 internal/ui/        embedded Swagger UI page, initializer, and allowlisted assets

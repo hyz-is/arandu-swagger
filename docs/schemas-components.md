@@ -183,8 +183,10 @@ One module instance can register:
 | `SecurityScheme` | `securitySchemes` |
 
 The public typed model additionally represents callbacks and reusable path
-items, although the first registry API does not provide dedicated registration
-methods for those two advanced sections.
+items, although the registry API does not provide dedicated registration
+methods for those two advanced sections. Webhooks, the document's top-level
+`webhooks` section, are registered with `Webhooks`; see
+[Webhooks](webhooks.md).
 
 ## Examples and extensions
 

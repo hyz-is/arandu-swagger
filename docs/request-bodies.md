@@ -35,8 +35,11 @@ docs.Route(route).RequestBody(
 )
 ```
 
-Use `MediaOf(contentType, nativeSchema)` for a native schema and
-`MediaRef(contentType, component)` for a reference. Content types must parse as
+Use `MediaOf(contentType, nativeSchema)` for a native schema,
+`MediaRef(contentType, component)` for a reference, and
+`MediaSchema(contentType, schema)` for a schema already snapshotted by
+`SchemaFromJSON` or `SchemasFromModels` -- for example one with a `$ref` below
+its root, which native Hesape builders cannot express. Content types must parse as
 valid media types; normalized equivalents, including case and parameter-order
 variants, cannot appear twice in one body.
 

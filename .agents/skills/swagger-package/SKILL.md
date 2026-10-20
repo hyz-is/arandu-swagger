@@ -80,6 +80,14 @@ Only explicitly documented routes are published by default. Use
 `Hidden` and `Ignore` always remove an operation. Fallback, `/_arandu`, and the
 documentation module's own routes are excluded by default.
 
+## Webhooks
+
+Events the API sends are not routes. Register them as `swagger.Webhook` values
+built from the application's event catalogue with `docs.Webhooks(...)`; the
+document gains its OpenAPI 3.1 `webhooks` section and Swagger UI shows it. Feed
+the served module and any static export from the same application function.
+See `docs/webhooks.md`.
+
 ## Endpoints and export
 
 The defaults are `GET /docs`, `GET /docs/openapi.json`, and versioned assets
