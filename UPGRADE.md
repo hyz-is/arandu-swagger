@@ -1,5 +1,59 @@
 # Upgrade Guide
 
+## v0.5.0 — openapi:export, and the contract an application commits
+
+`apidiff` against `v0.4.9` reports compatible additions and nothing else:
+`Module.Commands`, `Module.Contract`, `Config.ContractName`,
+`Config.ContractDir`, `DefaultContractName`, `DefaultContractDir` and
+`ExportCommandName`, plus the fields `SwaggerViewData` gains from the
+`view.Page` of Hesape v0.72.0, which this release requires. Nothing served over
+HTTP changes.
+
+Two things do change around the package:
+
+- **The binary answers `openapi:export`.** `Module` implements
+  `foundation.Commandable`, so a kernel that composes module commands adds
+  `openapi:export` beside its own. An application that declared a command of
+  that name itself is refused at start-up for the duplicate name; remove its
+  command.
+- **The manifest declares `filesystem = true`.** The export command writes the
+  contract files and `--check` reads them; serving requests still reads no
+  file. Review it as the capability the package now asks for.
+
+### A program that wrote the contract becomes the module's command
+
+An application that kept `cmd/openapi` to generate its contract and compare it
+in CI deletes it:
+
+```go
+// Before: cmd/openapi/main.go wired the routes again and wrote the file.
+doc, err := swagger.Generate(router.Routes(), registry, config)
+encoded, err := json.MarshalIndent(doc, "", "  ")
+err = os.WriteFile("docs/contracts/api.openapi.json", append(encoded, '\n'), 0o644)
+
+// After: the module bootstrap/app.go already registers writes it.
+docs, err := swagger.New(swagger.Config{
+	Enabled:      cfg.App.Env == config.EnvDev,
+	Title:        "Example API",
+	Version:      "1.0.0",
+	ContractName: "api", // docs/contracts/api.openapi.json, the default
+})
+```
+
+```bash
+aru openapi:export   # writes the file; commit it
+aru openapi:check    # in CI: openapi:export --check, fails naming a stale file
+```
+
+The bytes are the ones that program wrote when it indented by two spaces and
+appended a newline, so the first `openapi:check` after the switch passes on an
+unchanged route table. The module's own document is exported whenever
+`Config.Title` is set, also while `Enabled` is false. A route table that answers
+more than one contract declares the others with
+`docs.Contract(registry, swagger.Config{Title: ..., Version: ..., ContractName: ...})`;
+a contract no `swagger.Module` produces is a command of the application in
+`app/Console/Commands`.
+
 ## v0.4.9 — webhooks in the generated document
 
 `apidiff` against `v0.4.8` reports compatible additions and nothing else:
