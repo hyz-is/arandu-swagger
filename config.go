@@ -19,6 +19,12 @@ const (
 	// DefaultSpecPath is the specification endpoint used when both UIPath and
 	// SpecPath are empty.
 	DefaultSpecPath = "/docs/openapi.json"
+	// DefaultContractName is the document name openapi:export uses when
+	// ContractName is empty.
+	DefaultContractName = "api"
+	// DefaultContractDir is the directory openapi:export writes to when
+	// ContractDir is empty, relative to the working directory of the binary.
+	DefaultContractDir = "docs/contracts"
 )
 
 // Middleware wraps one of the HTTP handlers exposed by the package.
@@ -147,6 +153,17 @@ type Config struct {
 	UIMiddleware []Middleware
 	// SpecMiddleware wraps the OpenAPI JSON handler in declaration order.
 	SpecMiddleware []Middleware
+
+	// ContractName names the committed document the openapi:export command
+	// writes, as <ContractDir>/<ContractName>.openapi.json. It is one path
+	// segment of letters, digits, dots, hyphens and underscores, and empty
+	// means DefaultContractName.
+	ContractName string
+	// ContractDir is the directory openapi:export writes the document to and
+	// openapi:export --check reads it from. A relative path is resolved
+	// against the working directory of the binary, which is the application
+	// root when aru runs it. Empty means DefaultContractDir.
+	ContractDir string
 }
 
 // Theme controls visual styling, dark mode, custom colors, branding, and HTMX behavior.
@@ -240,7 +257,38 @@ func (c Config) Validate() error {
 	if issues := validateGenerationConfig(c); len(issues) > 0 {
 		return issues[0]
 	}
+	if err := validateContractConfig(c); err != nil {
+		return err
+	}
 
+	return nil
+}
+
+// validateContractConfig reports a ContractName that is not one plain path
+// segment, or a ContractDir that cannot name a directory.
+func validateContractConfig(c Config) error {
+	if name := c.ContractName; name != "" {
+		if strings.HasPrefix(name, ".") {
+			return fmt.Errorf("swagger: Config.ContractName %q must not start with a dot", name)
+		}
+		for _, character := range name {
+			if character >= 'a' && character <= 'z' ||
+				character >= 'A' && character <= 'Z' ||
+				character >= '0' && character <= '9' ||
+				character == '.' || character == '-' || character == '_' {
+				continue
+			}
+			return fmt.Errorf("swagger: Config.ContractName %q must contain only letters, digits, dots, hyphens and underscores", name)
+		}
+	}
+	if c.ContractDir != "" {
+		if strings.TrimSpace(c.ContractDir) == "" {
+			return fmt.Errorf("swagger: Config.ContractDir must not be blank")
+		}
+		if strings.ContainsFunc(c.ContractDir, unicode.IsControl) {
+			return fmt.Errorf("swagger: Config.ContractDir %q must not contain control characters", c.ContractDir)
+		}
+	}
 	return nil
 }
 
@@ -361,6 +409,12 @@ func (c Config) withDefaults() Config {
 	}
 	if c.Theme.BackTarget == "" {
 		c.Theme.BackTarget = "_self"
+	}
+	if c.ContractName == "" {
+		c.ContractName = DefaultContractName
+	}
+	if c.ContractDir == "" {
+		c.ContractDir = DefaultContractDir
 	}
 	return c
 }

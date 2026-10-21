@@ -85,6 +85,11 @@ type Module struct {
 
 	diagnosticMu sync.RWMutex
 	lastError    error
+
+	// contracts are the documents declared with Contract, exported by
+	// openapi:export after the module's own.
+	contractsMu sync.Mutex
+	contracts   []contract
 }
 
 type specificationCache struct {

@@ -14,7 +14,10 @@ import (
 	swagger "github.com/hyz-is/arandu-swagger"
 )
 
-func TestAcceptanceManifestDeclaresNoRuntimeCapabilities(t *testing.T) {
+// The only capability the package declares is the filesystem, which the
+// openapi:export console command uses to write and compare the contract files.
+// Serving requests still needs none.
+func TestAcceptanceManifestDeclaresOnlyTheContractFilesystemCapability(t *testing.T) {
 	t.Parallel()
 
 	root := acceptanceProjectRoot(t)
@@ -22,14 +25,49 @@ func TestAcceptanceManifestDeclaresNoRuntimeCapabilities(t *testing.T) {
 	if err != nil {
 		t.Fatalf("read arandu.mod.toml: %v", err)
 	}
-	for _, capability := range []string{"network", "filesystem", "exec", "migrations"} {
-		pattern := regexp.MustCompile(`(?m)^` + regexp.QuoteMeta(capability) + `\s*=\s*false\s*$`)
+	for capability, want := range map[string]string{
+		"network":    "false",
+		"filesystem": "true",
+		"exec":       "false",
+		"migrations": "false",
+	} {
+		pattern := regexp.MustCompile(`(?m)^` + regexp.QuoteMeta(capability) + `\s*=\s*` + want + `\s*$`)
 		if !pattern.Match(manifest) {
-			t.Errorf("arandu.mod.toml does not declare %s = false", capability)
+			t.Errorf("arandu.mod.toml does not declare %s = %s", capability, want)
 		}
-		truePattern := regexp.MustCompile(`(?m)^` + regexp.QuoteMeta(capability) + `\s*=\s*true\s*$`)
-		if truePattern.Match(manifest) {
-			t.Errorf("arandu.mod.toml unexpectedly declares %s = true", capability)
+		declarations := regexp.MustCompile(`(?m)^`+regexp.QuoteMeta(capability)+`\s*=`).FindAll(manifest, -1)
+		if len(declarations) != 1 {
+			t.Errorf("arandu.mod.toml declares %s %d times, want once", capability, len(declarations))
+		}
+	}
+}
+
+// Only contracts.go touches the filesystem, so the capability the manifest
+// declares stays the export command's and does not spread to request serving.
+func TestAcceptanceOnlyTheContractExportTouchesTheFilesystem(t *testing.T) {
+	t.Parallel()
+
+	root := acceptanceProjectRoot(t)
+	calls := regexp.MustCompile(`\bos\.(Open|OpenFile|Create|ReadFile|WriteFile|Remove|RemoveAll|Mkdir|MkdirAll|Rename|ReadDir)\(|\bfilepath\.Walk(Dir)?\(|"io/ioutil"`)
+	entries, err := os.ReadDir(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, entry := range entries {
+		name := entry.Name()
+		if entry.IsDir() || !strings.HasSuffix(name, ".go") || strings.HasSuffix(name, "_test.go") {
+			continue
+		}
+		source, err := os.ReadFile(filepath.Join(root, name))
+		if err != nil {
+			t.Fatal(err)
+		}
+		found := calls.Match(source)
+		if name == "contracts.go" && !found {
+			t.Error("contracts.go no longer touches the filesystem; set filesystem = false in arandu.mod.toml")
+		}
+		if name != "contracts.go" && found {
+			t.Errorf("%s touches the filesystem, which only the contract export may do", name)
 		}
 	}
 }

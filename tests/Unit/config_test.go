@@ -534,3 +534,37 @@ func validConfig() swagger.Config {
 		Version: "1.0.0",
 	}
 }
+
+func TestEnabledDocumentationValidatesItsContractFile(t *testing.T) {
+	t.Parallel()
+
+	valid := []string{"", "api", "public-api", "v2.billing", "Workspace_1"}
+	for _, name := range valid {
+		config := swagger.Config{Enabled: true, Title: "API", Version: "1", ContractName: name}
+		if err := config.Validate(); err != nil {
+			t.Errorf("ContractName %q: Validate() error = %v, want nil", name, err)
+		}
+	}
+
+	invalid := map[string]swagger.Config{
+		"separator":      {ContractName: "contracts/api"},
+		"backslash":      {ContractName: `contracts\api`},
+		"parent":         {ContractName: ".."},
+		"hidden":         {ContractName: ".api"},
+		"space":          {ContractName: "public api"},
+		"blank dir":      {ContractDir: "   "},
+		"control in dir": {ContractDir: "docs/\ncontracts"},
+	}
+	for name, config := range invalid {
+		config.Enabled, config.Title, config.Version = true, "API", "1"
+		err := config.Validate()
+		if err == nil || !strings.Contains(err.Error(), "Config.Contract") {
+			t.Errorf("%s: Validate() error = %v, want a Config.Contract* error", name, err)
+		}
+	}
+
+	// The opt-out stays an opt-out: dormant contract settings are not read.
+	if err := (swagger.Config{ContractName: "a/b"}).Validate(); err != nil {
+		t.Errorf("disabled configuration with a dormant ContractName: Validate() error = %v", err)
+	}
+}

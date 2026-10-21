@@ -12,8 +12,10 @@ profiles = ["conventional", "performance"]
 [permissions]
 # It answers requests from embedded bytes. Nothing leaves the process.
 network = false
-# Swagger UI assets are embedded at build time; runtime does not read or write files.
-filesystem = false
+# The openapi:export console command writes and reads the contract files under
+# Config.ContractDir. Serving requests reads no file: Swagger UI assets are
+# embedded at build time.
+filesystem = true
 # It runs no other program.
 exec = false
 # Documentation is derived from the route table and owns no database schema.
