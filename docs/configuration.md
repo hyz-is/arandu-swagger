@@ -70,6 +70,18 @@ namespace.
 specification endpoint. Set both switches to true for programmatic-only
 generation. Set only `DisableUI` to expose JSON without an interactive UI.
 
+## Contract file
+
+| Field | Default | Meaning |
+| --- | --- | --- |
+| `ContractName` | `api` | names the file `openapi:export` writes, `<ContractDir>/<ContractName>.openapi.json` |
+| `ContractDir` | `docs/contracts` | directory of that file, relative to the working directory of the binary |
+
+`ContractName` is one path segment of letters, digits, dots, hyphens and
+underscores that does not start with a dot. The module's own document is
+exported whenever `Title` is set, whether or not `Enabled` is; see
+[committed contracts](generation.md#committed-contracts-openapiexport-and-aru-openapicheck).
+
 ## Selection, cache, and UI behavior
 
 | Field | Default | Meaning |

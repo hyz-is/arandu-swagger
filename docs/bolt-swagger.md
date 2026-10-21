@@ -60,8 +60,8 @@ and multiple application instances from leaking documentation into one another.
 
 The HTTP endpoint reads the shared route table after application boot and
 generates JSON lazily. Enable `CacheSpec` for an immutable production route
-table. Use `Generate` or `GenerateJSON` directly for tests and static export;
-there is no package CLI.
+table. Use `Generate` or `GenerateJSON` directly for tests, and the module's
+`openapi:export` command for the committed contract.
 
 ## Replace remote UI assets
 

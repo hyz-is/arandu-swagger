@@ -26,14 +26,15 @@ this package. Swagger UI assets are already embedded in the compiled Go binary,
 so there is no npm, Node.js, download, copy, or asset build at install or
 runtime.
 
-Its `arandu.mod.toml` declares all four capabilities false:
+Its `arandu.mod.toml` declares one capability, the filesystem, and only the
+`openapi:export` console command uses it:
 
-| Capability | Why it is not needed |
-| --- | --- |
-| `network` | serving requests is not an outbound network call |
-| `filesystem` | `go:embed` is compiled data; the package does not read or write runtime files |
-| `exec` | no external process is started |
-| `migrations` | the document is derived from in-memory route metadata |
+| Capability | Declared | Why |
+| --- | --- | --- |
+| `network` | false | serving requests is not an outbound network call |
+| `filesystem` | true | `openapi:export` writes the contract files and `--check` reads them; serving requests reads no file, and `go:embed` is compiled data |
+| `exec` | false | no external process is started |
+| `migrations` | false | the document is derived from in-memory route metadata |
 
 Continue with [explicit bootstrap wiring](bootstrap.md), then document routes
 through the small `swagger.Documenter` interface.

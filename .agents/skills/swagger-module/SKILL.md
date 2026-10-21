@@ -8,8 +8,8 @@ license: MIT
 
 Preserve these boundaries before adding behavior:
 
-- `Module` implements `foundation.Module` and `foundation.Diagnostic`, never
-  `foundation.Migratable`.
+- `Module` implements `foundation.Module`, `foundation.Diagnostic` and
+  `foundation.Commandable`, never `foundation.Migratable`.
 - `New(Config)` validates and snapshots configuration. It performs no boot
   work, I/O, route scan, or global registration.
 - The registry belongs to the module instance and is mutex-protected.
@@ -29,7 +29,25 @@ Preserve these boundaries before adding behavior:
 | `openapi.go`, `security.go` | typed OpenAPI 3.1 model |
 | `generator.go` | route binding, filtering, inference, validation, JSON |
 | `module.go` | Arandu lifecycle, endpoints, cache, diagnostics |
+| `contracts.go` | `openapi:export`, `Module.Contract`, the committed contract files |
 | `internal/ui` | allowlisted embedded browser distribution and shell |
+
+## The committed contract
+
+`Commands` declares `openapi:export`. It generates every exported document from
+the captured route table -- the module's own when `Config.Title` is set, then
+each one declared with `Module.Contract`, in that order -- and writes each to
+`<ContractDir>/<ContractName>.openapi.json`, `docs/contracts/api.openapi.json`
+by default, as `json.MarshalIndent` with two spaces and one trailing newline.
+Every document generates before any file is written. `--check` writes nothing
+and returns `console.Exit(1, ...)` naming each file that is missing or differs.
+
+An application checks its contract with `aru openapi:check`, which runs the
+binary as `openapi:export --check`, and writes it with `aru openapi:export`. No
+application keeps a `cmd/openapi` program; a contract no `swagger.Module`
+produces is a command of the application in `app/Console/Commands`. Keep the
+command name, the default path, and the byte form stable: committed files in
+every consuming application depend on them, and a change rewrites all of them.
 
 ## Route interpretation
 
@@ -63,7 +81,9 @@ inline-style exception to `style-src-attr`, serve correct MIME types with
 `THIRD_PARTY.md`, retained notices, integrity hashes, tests, and the version
 constant together.
 
-Do not add filesystem, outbound network, process, or migration behavior without
+Filesystem access lives in `contracts.go` only, for the export command, and
+`arandu.mod.toml` declares it; a unit test fails when another root file touches
+files. Do not add outbound network, process, or migration behavior without
 updating `arandu.mod.toml` in the same change. Server-side `net/http` handlers do
 not constitute outbound network access.
 

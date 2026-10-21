@@ -47,18 +47,55 @@ With `CacheSpec` enabled, `Module.GenerateJSON` and the HTTP handler share a
 serialized cache keyed by both registry revision and a fingerprint of public
 route metadata. `Module.Generate` always returns a newly built typed document.
 
-## CI and static export
+## Committed contracts: openapi:export and aru openapi:check
 
-The repository includes a runnable generator:
+`swagger.Module` implements `foundation.Commandable`, so the application's
+binary answers `openapi:export` once the module is registered:
+
+```bash
+aru openapi:export          # writes docs/contracts/api.openapi.json
+aru openapi:check           # runs openapi:export --check, writes nothing
+```
+
+`openapi:export` generates every document the module exports from the route
+table and writes each to `<ContractDir>/<ContractName>.openapi.json`
+(`docs/contracts/api.openapi.json` by default), indented by two spaces and
+ending in a newline. The same route table always writes the same bytes, and no
+file is written unless every document generates. With `--check` nothing is
+written: the command exits 1 naming each committed document that is missing or
+differs from the generated one. Put `aru openapi:check` in CI beside the tests.
+
+A route table that answers more than one contract -- a browser workspace and a
+public API, for example -- declares the others on the same module, each with
+its own registry and configuration:
+
+```go
+api := swagger.NewRegistry()
+// ... document the public API routes on api ...
+if err := docs.Contract(api, swagger.Config{
+	Title:        "Public API",
+	Version:      "1.0.0",
+	ContractName: "public",
+	Filter:       swagger.RouteFilter{IncludePrefixes: []string{"/api/"}},
+}); err != nil {
+	return App{}, err
+}
+```
+
+The module's own document is exported whenever its configuration names a
+`Title`, also while `Enabled` is false: `Enabled` decides whether the endpoints
+are served, so documentation served only in development is still exported and
+checked in CI. The zero configuration exports nothing and declares no command.
+
+An application keeps no `cmd/openapi` program: a contract no `swagger.Module`
+produces is a command of the application in `app/Console/Commands`.
+
+The runnable `examples/static` generator still prints a document for a tool
+that wants the bytes on standard output:
 
 ```bash
 go run ./examples/static > openapi.json
 ```
-
-The shell performs the file write. Arandu Swagger only returns or prints bytes
-and therefore does not claim runtime filesystem capability. There is no
-`aru swagger:generate` command or package-specific CLI: Arandu does not expose
-a package command-extension contract yet.
 
 A CI test can compare the returned bytes with a reviewed artifact or feed them
 to an external compatibility checker. Deterministic serialization makes a

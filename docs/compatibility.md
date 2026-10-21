@@ -68,9 +68,10 @@ some cases, so the first version keeps the exact portable pattern on a string.
 | concurrent generation and registry updates | supported |
 | registry- and route-aware production cache | supported |
 | live reload / Joaju integration | not supported |
-| Aru package CLI command | not supported; no extension contract exists |
+| `openapi:export` and `aru openapi:check` | supported through `foundation.Commandable` |
 | database, migrations, repository, policy, service | not used |
-| runtime filesystem, outbound network, process execution | not used |
+| filesystem | used only by `openapi:export` to write and compare the contract files |
+| outbound network, process execution | not used |
 
 See [generation](generation.md) for diagnostics and
 [assets/CSP](assets-csp.md) for browser boundaries.

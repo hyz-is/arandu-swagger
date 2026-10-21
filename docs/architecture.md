@@ -19,7 +19,7 @@ before implementation. Source references use the form
 | `framework` | `foundation.Module`, optional module contracts, `foundation.Application`, `framework/http` | Modules are explicitly registered, routes are registered during `Boot`, and the framework route type is the Hesape route type. |
 | `hesape` | `routing`, `http`, `jsonschema`, embedded view assets | The route table and JSON Schema builders are the sources of truth. HTTP responses and static assets can use the standard library directly. |
 | `package-skeleton` | Module/config construction, package gates, external test layout | The package uses `New(Config)`, typed configuration, English public documentation, and `tests/Unit` plus `tests/Feature`. |
-| `aru` | Command dispatch and capability audit | There is no package command plug-in contract. Capabilities are inferred from concrete calls, not intent. |
+| `aru` | Command dispatch and capability audit | Commands it does not know go to the application binary, which answers what every `foundation.Commandable` module declares. Capabilities are inferred from concrete calls, not intent. |
 | `kyse` | Component and asset model | Kyse is a compiled Go component library, not a replacement runtime for Swagger UI. |
 | `joaju` | Embedded self-origin JavaScript client | Its asset handler is a useful local pattern; WebSockets are unnecessary for the first release. |
 
@@ -383,28 +383,28 @@ another WebSocket server.
 ## Aru integration and capabilities
 
 Aru's command list is compiled into the CLI, while commands it does not know are
-delegated to the current application's binary. There is no contract by which an
-imported package registers a new Aru command. Sources:
+delegated to the current application's binary. The binary answers the commands
+the framework composes, the application's own, and those every registered
+`foundation.Commandable` module declares.
 
-- `arandu-io/aru/commands.go:18-31`
-- `arandu-io/aru/main.go:50-69`
-- `arandu-io/aru/delegate.go:18-71`
-
-The first release exposes programmatic generation and does not add a parallel
-CLI or modify Aru. An application may later wire its own command around that API,
-and a future official integration requires an official extension contract.
+The module declares one: `openapi:export`, which writes every document it
+exports to `<ContractDir>/<ContractName>.openapi.json` and, with `--check`,
+fails when a committed file differs. `aru openapi:check` runs the binary as
+`openapi:export --check`, so an application checks its contract in CI without a
+program of its own beside the binary.
 
 Aru audits capabilities from AST calls. Server-side `net/http` use is not
 outbound network access; filesystem, process execution, outbound HTTP, and any
 receiver method named `Migrations` are detected separately. Source:
 `arandu-io/aru/internal/doctor/rules.go:1476-1604`.
 
-With embedded assets and no runtime download, file write, process, database, or
-migration method, the package declares:
+With embedded assets and no runtime download, process, database, or migration
+method, the package declares only the filesystem, which the export command
+writes the contract files with:
 
 ```toml
 network = false
-filesystem = false
+filesystem = true
 exec = false
 migrations = false
 ```

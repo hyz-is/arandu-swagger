@@ -16,8 +16,16 @@ Read the relevant procedure under `.agents/skills/` before changing code:
 
 ## Non-negotiable contracts
 
-- `Module` implements `foundation.Module`, `foundation.Diagnostic`, and
-  `Documenter`; it deliberately does not implement migrations or boot hooks.
+- `Module` implements `foundation.Module`, `foundation.Diagnostic`,
+  `foundation.Commandable`, and `Documenter`; it deliberately does not
+  implement migrations or boot hooks.
+- `Commands` declares `openapi:export`, which writes every exported document
+  to `<ContractDir>/<ContractName>.openapi.json` (`docs/contracts/api.openapi.json`
+  by default) as indented JSON with a trailing newline, and with `--check`
+  writes nothing and fails naming each committed file that is missing or
+  differs. `aru openapi:check` runs it; no application keeps a `cmd/openapi`.
+  The module's own document is exported when its `Title` is set, and further
+  documents of the same route table are declared with `Module.Contract`.
 - `New(Config)` validates wiring and snapshots every mutable configuration
   value. `Config{}` is a complete opt-out and registers no routes.
 - Every module owns its own `Registry`. There is no package-level mutable state
@@ -33,9 +41,11 @@ Read the relevant procedure under `.agents/skills/` before changing code:
   `Models` derives a component from the Go type a payload already is, so the
   contract and the encoded value cannot drift; it is a derivation, not a
   builder, and its output passes the `SchemaFromJSON` validation.
-- Runtime code performs no filesystem access, outbound network request,
-  process execution, or migration. Keep every permission in
-  `arandu.mod.toml` false unless the architecture intentionally changes.
+- Runtime code performs no outbound network request, process execution, or
+  migration, and serving requests touches no file. The filesystem belongs to
+  the `openapi:export` command in `contracts.go` alone, which is why
+  `arandu.mod.toml` declares `filesystem = true`; keep the other permissions
+  false unless the architecture intentionally changes.
 
 ## Route interpretation
 
@@ -81,6 +91,7 @@ Production files at the module root are organized by responsibility:
 config.go           typed configuration and validation
 module.go           framework integration, HTTP delivery, cache, diagnostics
 module_registry.go  component registration methods on Module
+contracts.go        the openapi:export command and the documents it writes
 openapi.go          typed OpenAPI 3.1 model
 registry.go         instance registry and fluent operation builders
 schema.go           Hesape JSON Schema adapter and snapshot validation

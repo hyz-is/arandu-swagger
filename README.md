@@ -18,7 +18,9 @@ The package is intentionally an Arandu module rather than a second framework:
 - it generates lazily after application boot and can cache serialized JSON;
 - its Swagger UI 5.32.14 assets are embedded and served from the same origin;
 - it has no database, migrations, service provider, container, discovery,
-  mutable package registry, runtime filesystem access, CDN, or runtime Node.js;
+  mutable package registry, CDN, or runtime Node.js;
+- it adds `openapi:export` to the application's binary, which writes and
+  checks the committed contract and is the only code that touches files;
 - documentation is disabled unless `Config.Enabled` is explicitly true.
 
 ## Install
@@ -160,6 +162,27 @@ The UI and specification routes are not authenticated by this package. Attach
 application middleware through `UIMiddleware` and `SpecMiddleware` before
 enabling them outside a trusted development environment.
 
+## Committed contract
+
+Registering the module adds `openapi:export` to the application's binary. It
+writes the document to `docs/contracts/api.openapi.json` (`ContractDir` and
+`ContractName` move it), and an application checks that the committed file
+still matches its route table with `aru openapi:check`, which runs the binary as
+`openapi:export --check` and fails naming each file that is missing or differs:
+
+```bash
+aru openapi:export   # write docs/contracts/api.openapi.json, then commit it
+aru openapi:check    # in CI: fail when the committed contract is stale
+```
+
+The document is exported whenever `Config.Title` is set, also where `Enabled`
+is false, so documentation served only in development is still checked in CI.
+A route table that answers more than one contract declares the others with
+`docs.Contract(registry, config)`, and `openapi:export` writes each one. No
+application keeps a `cmd/openapi` program: a contract no `swagger.Module`
+produces is a command of the application in `app/Console/Commands`. See
+[Static generation and diagnostics](docs/generation.md#committed-contracts-openapiexport-and-aru-openapicheck).
+
 ## Documentation model
 
 By default, only routes passed to `Documenter.Route` are published. Arandu
@@ -256,10 +279,10 @@ data, err := swagger.GenerateJSON(router.Routes(), registry, swagger.Config{
 })
 ```
 
-The package returns bytes and never writes them. A calling application or CI
-job decides whether and where to persist them. A runnable example is in
-[`examples/static`](examples/static/main.go). There is no package CLI because
-Arandu does not currently expose a package-command extension contract.
+These functions return bytes and never write them. A runnable example is in
+[`examples/static`](examples/static/main.go). The committed contract of an
+application is written by `openapi:export` (see
+[Committed contract](#committed-contract)), not by a program of its own.
 
 ## Routing boundaries
 
