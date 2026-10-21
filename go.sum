@@ -1,7 +1,7 @@
 github.com/arandu-io/framework v0.56.0 h1:EZG8LdmWaOtDryEjIE3+m9sf9aj+9VJUZWHssGalueA=
 github.com/arandu-io/framework v0.56.0/go.mod h1:JXuV+Wh8/sKP1ACeDWzB9vZixc+id1Y4w/xVFOqR0Ns=
-github.com/arandu-io/hesape v0.54.0 h1:PaphvRTjeBRW7m1cnzqOQEQc3bck2wGLzPwfPnr6ZAA=
-github.com/arandu-io/hesape v0.54.0/go.mod h1:EGvD/xu7BKqX/sT4p/XN+igAb5tBagA/VwoEqeVV1b0=
+github.com/arandu-io/hesape v0.72.0 h1:+5h6NQlvRTc/WcIL3iBk6vuNiC5pI+12Y+lycAqqDns=
+github.com/arandu-io/hesape v0.72.0/go.mod h1:EGvD/xu7BKqX/sT4p/XN+igAb5tBagA/VwoEqeVV1b0=
 github.com/arandu-io/kyse v0.34.1 h1:zMbjv5SZk8+yq+3YQaD/1DFuyqy++MDkAsUmrdvz/z0=
 github.com/arandu-io/kyse v0.34.1/go.mod h1:Ctywo0VCTHrURGRVMHI0y6KvlEMW3z0xlDp+xCBYh84=
 golang.org/x/crypto v0.57.0 h1:3ZVCjf8Ggz7zneR/EHRVx68Ctf+2pmIMP2UFhh9cC6M=
