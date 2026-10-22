@@ -180,7 +180,17 @@ is false, so documentation served only in development is still checked in CI.
 A route table that answers more than one contract declares the others with
 `docs.Contract(registry, config)`, and `openapi:export` writes each one. No
 application keeps a `cmd/openapi` program: a contract no `swagger.Module`
-produces is a command of the application in `app/Console/Commands`. See
+produces is a command of the application in `app/Console/Commands`, written
+with `swagger.GenerateContract`.
+
+An exported document describes the HTTP surface alone. It is generated with
+`GenerateContract`, which leaves out the module each route is registered under
+(no `x-arandu-module`, and no tag taken from the module name), so moving routes
+between modules does not churn a committed file; the document served at
+`/docs/openapi.json` keeps both. `Config.ContractServers` lists the servers of
+the exported document in place of `Servers`, so a contract can name the
+production URL its SDKs call while the served document lists none and Swagger
+UI's "Try it out" calls the origin the page was loaded from. See
 [Static generation and diagnostics](docs/generation.md#committed-contracts-openapiexport-and-aru-openapicheck).
 
 ## Documentation model

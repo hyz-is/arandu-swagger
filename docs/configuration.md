@@ -76,9 +76,13 @@ generation. Set only `DisableUI` to expose JSON without an interactive UI.
 | --- | --- | --- |
 | `ContractName` | `api` | names the file `openapi:export` writes, `<ContractDir>/<ContractName>.openapi.json` |
 | `ContractDir` | `docs/contracts` | directory of that file, relative to the working directory of the binary |
+| `ContractServers` | empty | when set, the `servers` of the exported document in place of `Servers`; the served document keeps `Servers` |
 
 `ContractName` is one path segment of letters, digits, dots, hyphens and
-underscores that does not start with a dot. The module's own document is
+underscores that does not start with a dot. `ContractServers` entries are
+validated as `Servers` entries are. The exported document is generated with
+`GenerateContract`, so it carries no `x-arandu-module` and no tag taken from a
+module name. The module's own document is
 exported whenever `Title` is set, whether or not `Enabled` is; see
 [committed contracts](generation.md#committed-contracts-openapiexport-and-aru-openapicheck).
 

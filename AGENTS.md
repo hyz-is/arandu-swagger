@@ -26,6 +26,11 @@ Read the relevant procedure under `.agents/skills/` before changing code:
   differs. `aru openapi:check` runs it; no application keeps a `cmd/openapi`.
   The module's own document is exported when its `Title` is set, and further
   documents of the same route table are declared with `Module.Contract`.
+- Exported documents come from `GenerateContract`: no `x-arandu-module` and no
+  tag derived from the module name, and `Config.ContractServers` in place of
+  `Servers` when set. The served document, `Module.Generate`/`GenerateJSON`
+  and the package `Generate`/`GenerateJSON` keep the composition and
+  `Servers`; do not let one leak into the other.
 - `New(Config)` validates wiring and snapshots every mutable configuration
   value. `Config{}` is a complete opt-out and registers no routes.
 - Every module owns its own `Registry`. There is no package-level mutable state

@@ -389,7 +389,10 @@ the framework composes, the application's own, and those every registered
 
 The module declares one: `openapi:export`, which writes every document it
 exports to `<ContractDir>/<ContractName>.openapi.json` and, with `--check`,
-fails when a committed file differs. `aru openapi:check` runs the binary as
+fails when a committed file differs. The exported documents are generated with
+`GenerateContract`, which leaves out the module each route is registered under,
+so a committed contract follows the HTTP surface and not how the application is
+composed. `aru openapi:check` runs the binary as
 `openapi:export --check`, so an application checks its contract in CI without a
 program of its own beside the binary.
 

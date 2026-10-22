@@ -25,6 +25,23 @@ if err != nil {
 application-specific advanced OpenAPI field before calling `json.Marshal`.
 `GenerateJSON` performs both steps and returns deterministic JSON bytes.
 
+`Generate` describes the application as it is composed: each operation carries
+the module its route is registered under as `x-arandu-module`, and an operation
+with no tags of its own is tagged with that module. This is the document the
+module serves. `GenerateContract` takes the same arguments and returns the
+document `openapi:export` commits:
+
+```go
+document, err := swagger.GenerateContract(router.Routes(), registry, config)
+```
+
+It leaves the module out -- no `x-arandu-module`, and an untagged operation
+stays untagged -- because which module registers a route is how the
+application is composed, not part of its HTTP surface. `x-arandu-route-name`,
+`x-arandu-domain` and the deprecation extensions stay. When
+`Config.ContractServers` is set, it is the document's `servers` in place of
+`Config.Servers`.
+
 Neither function starts a server. `Enabled` controls module endpoints, not the
 low-level generator; generation itself always requires a non-empty title and
 version.
@@ -60,7 +77,10 @@ aru openapi:check           # runs openapi:export --check, writes nothing
 `openapi:export` generates every document the module exports from the route
 table and writes each to `<ContractDir>/<ContractName>.openapi.json`
 (`docs/contracts/api.openapi.json` by default), indented by two spaces and
-ending in a newline. The same route table always writes the same bytes, and no
+ending in a newline. Each document is generated with `GenerateContract`, so it
+carries no `x-arandu-module` and no tag taken from a module name, and lists
+`Config.ContractServers` when that is set. The same route table always writes
+the same bytes, whichever modules register its routes, and no
 file is written unless every document generates. With `--check` nothing is
 written: the command exits 1 naming each committed document that is missing or
 differs from the generated one. Put `aru openapi:check` in CI beside the tests.
@@ -87,8 +107,24 @@ The module's own document is exported whenever its configuration names a
 are served, so documentation served only in development is still exported and
 checked in CI. The zero configuration exports nothing and declares no command.
 
+A contract can name the production server its SDKs call while the served
+document names none, so that Swagger UI's "Try it out" sends requests to the
+origin the page was loaded from and a development instance never calls
+production:
+
+```go
+docs, err := swagger.New(swagger.Config{
+	Enabled:         cfg.App.Env == config.EnvDev,
+	Title:           "Example API",
+	Version:         "1.0.0",
+	ContractServers: []swagger.Server{{URL: "https://api.example.com"}},
+})
+```
+
 An application keeps no `cmd/openapi` program: a contract no `swagger.Module`
-produces is a command of the application in `app/Console/Commands`.
+produces is a command of the application in `app/Console/Commands`, which
+generates it with `GenerateContract` so its bytes match what `openapi:export`
+would write.
 
 The runnable `examples/static` generator still prints a document for a tool
 that wants the bytes on standard output:
