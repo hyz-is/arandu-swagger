@@ -28,7 +28,40 @@ var pathPlaceholderPattern = regexp.MustCompile(`\{([^{}]+)\}`)
 // Generate builds and validates an OpenAPI 3.1 document from a route-table
 // snapshot, an instance registry, and typed configuration. It does not start a
 // server and is suitable for tests, CI, and static export by application code.
+//
+// The document describes the application as it is composed: each operation
+// carries the module its route is registered under as x-arandu-module, and an
+// operation with no tags of its own is tagged with that module. This is the
+// document the module serves. A committed contract is generated with
+// GenerateContract instead.
 func Generate(routes []*fhttp.Route, registry *Registry, config Config) (*Document, error) {
+	return generate(routes, registry, config, false)
+}
+
+// GenerateContract builds and validates the OpenAPI 3.1 document that
+// openapi:export commits for the same route table, registry and configuration.
+//
+// It differs from Generate in two ways, both so that the committed file
+// describes the HTTP surface alone:
+//
+//   - The module a route is registered under is left out. No operation carries
+//     x-arandu-module, and an operation with no tags of its own stays untagged
+//     instead of being tagged with its module. Which module registers a route
+//     is how the application is composed, and moving a route from one module
+//     to another changes no request or response. x-arandu-route-name,
+//     x-arandu-domain and the deprecation extensions remain.
+//   - When Config.ContractServers is not empty, it is the document's servers
+//     list in place of Config.Servers.
+//
+// An application that writes a contract no swagger.Module exports, from a
+// command of its own, generates it with this function so its bytes match what
+// openapi:export would write.
+func GenerateContract(routes []*fhttp.Route, registry *Registry, config Config) (*Document, error) {
+	return generate(routes, registry, config, true)
+}
+
+// generate is Generate, or GenerateContract when contract is true.
+func generate(routes []*fhttp.Route, registry *Registry, config Config, contract bool) (*Document, error) {
 	snapshot, err := registry.snapshot()
 	if err != nil {
 		return nil, err
@@ -55,7 +88,7 @@ func Generate(routes []*fhttp.Route, registry *Registry, config Config) (*Docume
 			License:        cloneLicense(config.License),
 			Version:        config.Version,
 		},
-		Servers:      cloneServers(config.Servers),
+		Servers:      documentServers(config, contract),
 		Paths:        make(Paths),
 		Tags:         cloneTags(config.Tags),
 		ExternalDocs: cloneExternalDocs(config.ExternalDocs),
@@ -107,7 +140,7 @@ func Generate(routes []*fhttp.Route, registry *Registry, config Config) (*Docume
 				continue
 			}
 
-			operation, operationIssues := buildOperation(route, method, names, binding, documented, snapshot.components)
+			operation, operationIssues := buildOperation(route, method, names, binding, documented, !contract, snapshot.components)
 			issues = append(issues, operationIssues...)
 			if operation == nil {
 				continue
@@ -388,7 +421,19 @@ func hasMarkedPlaceholder(pattern, marker string) bool {
 	return false
 }
 
-func buildOperation(route *fhttp.Route, method string, pathNames []string, binding documentedBinding, documented bool, components Components) (*Operation, []error) {
+// documentServers is the servers list of a document: Config.ContractServers in
+// a contract that declares them, and Config.Servers otherwise.
+func documentServers(config Config, contract bool) []Server {
+	if contract && len(config.ContractServers) > 0 {
+		return cloneServers(config.ContractServers)
+	}
+	return cloneServers(config.Servers)
+}
+
+// buildOperation builds the operation of one route and method. composition
+// says whether the operation records the module its route is registered under,
+// as x-arandu-module and as the tag of an otherwise untagged operation.
+func buildOperation(route *fhttp.Route, method string, pathNames []string, binding documentedBinding, documented, composition bool, components Components) (*Operation, []error) {
 	draft := binding.draft
 	if !documented {
 		draft = operationDraft{
@@ -416,14 +461,14 @@ func buildOperation(route *fhttp.Route, method string, pathNames []string, bindi
 	if operation.Extensions == nil {
 		operation.Extensions = make(Extensions)
 	}
-	if len(operation.Tags) == 0 && route.Module != "" {
+	if composition && len(operation.Tags) == 0 && route.Module != "" {
 		operation.Tags = []string{route.Module}
 	}
 	operation.OperationID = operationID(route, method, binding, draft)
 	if route.GetName() != "" {
 		operation.Extensions["x-arandu-route-name"] = rawJSON(route.GetName())
 	}
-	if route.Module != "" {
+	if composition && route.Module != "" {
 		operation.Extensions["x-arandu-module"] = rawJSON(route.Module)
 	}
 	if domain := route.GetDomain(); domain != "" {
@@ -1471,6 +1516,9 @@ func validateGenerationConfig(config Config) []error {
 	}
 	for index, server := range config.Servers {
 		issues = append(issues, validateServer(fmt.Sprintf("Config.Servers[%d]", index), server)...)
+	}
+	for index, server := range config.ContractServers {
+		issues = append(issues, validateServer(fmt.Sprintf("Config.ContractServers[%d]", index), server)...)
 	}
 	seenTags := make(map[string]bool)
 	for index, tag := range config.Tags {

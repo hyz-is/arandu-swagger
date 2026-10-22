@@ -49,6 +49,22 @@ func documentOrders(router *fhttp.Router, module *swagger.Module) {
 	module.Route(orders).Summary("List orders").Response(http.StatusOK, "Orders.")
 }
 
+// standaloneOrders is the committed form of the document documentOrders
+// describes, generated with Generate over a router that registers the same
+// route under no module: the way a contract was written before openapi:export.
+func standaloneOrders(t *testing.T, config swagger.Config) []byte {
+	t.Helper()
+	router := fhttp.NewRouter()
+	registry := swagger.NewRegistry()
+	orders := router.Get("/api/orders", emptyHandler).Name("orders.index")
+	registry.Route(orders).Summary("List orders").Response(http.StatusOK, "Orders.")
+	document, err := swagger.Generate(router.Routes(), registry, config)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return committedForm(t, document)
+}
+
 func TestExportWritesTheModuleDocumentToItsContractFile(t *testing.T) {
 	t.Parallel()
 
@@ -71,11 +87,7 @@ func TestExportWritesTheModuleDocumentToItsContractFile(t *testing.T) {
 	if err != nil {
 		t.Fatalf("read the exported document: %v", err)
 	}
-	document, err := module.Generate()
-	if err != nil {
-		t.Fatal(err)
-	}
-	if want := committedForm(t, document); !bytes.Equal(written, want) {
+	if want := standaloneOrders(t, config); !bytes.Equal(written, want) {
 		t.Fatalf("exported document =\n%s\nwant\n%s", written, want)
 	}
 	if !bytes.HasSuffix(written, []byte("}\n")) || bytes.HasSuffix(written, []byte("\n\n")) {
@@ -204,16 +216,12 @@ func TestExportWritesEveryDocumentTheModuleExports(t *testing.T) {
 		t.Fatalf("openapi:export error = %v", err)
 	}
 
-	api, err := module.Generate()
-	if err != nil {
-		t.Fatal(err)
-	}
-	workspaceDocument, err := swagger.Generate(router.Routes(), workspace, workspaceConfig)
+	workspaceDocument, err := swagger.GenerateContract(router.Routes(), workspace, workspaceConfig)
 	if err != nil {
 		t.Fatal(err)
 	}
 	for name, want := range map[string][]byte{
-		"api.openapi.json":       committedForm(t, api),
+		"api.openapi.json":       standaloneOrders(t, exportConfig(dir)),
 		"workspace.openapi.json": committedForm(t, workspaceDocument),
 	} {
 		path := filepath.Join(dir, name)

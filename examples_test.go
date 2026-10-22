@@ -84,6 +84,35 @@ func ExampleGenerateJSON() {
 	// Output: true
 }
 
+func ExampleGenerateContract() {
+	router := fhttp.NewRouter().ForModule("billing")
+	registry := swagger.NewRegistry()
+	route := router.Get("/api/invoices", func(http.ResponseWriter, *http.Request) {}).Name("invoices.index")
+	registry.Route(route).Response(http.StatusOK, "Invoices")
+	config := swagger.Config{
+		Title:           "Example API",
+		Version:         "1.0.0",
+		ContractServers: []swagger.Server{{URL: "https://api.example.com"}},
+	}
+
+	served, err := swagger.Generate(router.Routes(), registry, config)
+	if err != nil {
+		panic(err)
+	}
+	contract, err := swagger.GenerateContract(router.Routes(), registry, config)
+	if err != nil {
+		panic(err)
+	}
+
+	_, servedModule := served.Paths["/api/invoices"].Get.Extensions["x-arandu-module"]
+	_, contractModule := contract.Paths["/api/invoices"].Get.Extensions["x-arandu-module"]
+	fmt.Println(servedModule, len(served.Servers))
+	fmt.Println(contractModule, contract.Servers[0].URL)
+	// Output:
+	// true 0
+	// false https://api.example.com
+}
+
 func ExampleSchemasFromModels() {
 	type Card struct {
 		Brand string  `json:"brand"`

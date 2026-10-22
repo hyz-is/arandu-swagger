@@ -164,6 +164,16 @@ type Config struct {
 	// against the working directory of the binary, which is the application
 	// root when aru runs it. Empty means DefaultContractDir.
 	ContractDir string
+	// ContractServers, when not empty, is the servers list of the document
+	// openapi:export writes for this configuration, in place of Servers. The
+	// document served over HTTP keeps Servers.
+	//
+	// It lets a committed contract name the production URL that SDKs are
+	// generated against, such as "https://api.example.com", while the served
+	// document lists no server, so that Swagger UI's "Try it out" sends its
+	// requests to the origin the page was loaded from and a development
+	// instance never calls production. Each entry is validated as Servers is.
+	ContractServers []Server
 }
 
 // Theme controls visual styling, dark mode, custom colors, branding, and HTMX behavior.
@@ -424,6 +434,7 @@ func cloneConfig(source Config) Config {
 	copy.Contact = cloneContact(source.Contact)
 	copy.License = cloneLicense(source.License)
 	copy.Servers = cloneServers(source.Servers)
+	copy.ContractServers = cloneServers(source.ContractServers)
 	copy.Tags = cloneTags(source.Tags)
 	copy.ExternalDocs = cloneExternalDocs(source.ExternalDocs)
 	copy.Filter = cloneRouteFilter(source.Filter)
