@@ -1,5 +1,71 @@
 # Upgrade Guide
 
+## v0.6.0 — an exported contract describes the HTTP surface alone
+
+`apidiff` against `v0.5.0` reports compatible additions and nothing else:
+`GenerateContract` and `Config.ContractServers`. Nothing served over HTTP
+changes, and neither do `Generate`, `GenerateJSON`, `Module.Generate` or
+`Module.GenerateJSON`.
+
+What changes is the content of every document `openapi:export` writes or checks
+-- the module's own and each one declared with `Module.Contract`:
+
+- **No operation carries `x-arandu-module`.**
+- **An operation with no tags of its own stays untagged.** It was tagged with
+  the module its route is registered under.
+
+Which module registers a route is how the application is composed: moving
+routes from a provider to `WithRouting` changed it from `app` to `web`, and the
+committed contract changed with it although no request or response did. The
+served document at `/docs/openapi.json` keeps both, since Swagger UI groups
+operations by tag. `x-arandu-route-name`, `x-arandu-domain` and the deprecation
+extensions stay in both documents.
+
+### Run openapi:export once and commit the result
+
+After upgrading, `aru openapi:check` fails on a contract committed by v0.5.0.
+Run `aru openapi:export`, review the diff -- it removes `x-arandu-module` and
+module-named tags and nothing else -- and commit it. An SDK generated from the
+contract that grouped operations by those tags now finds none on them; give
+the operations the tags the SDK should use with `Tags(...)` on the route's
+builder, and both documents carry them.
+
+A contract that was generated with `swagger.Generate` over a router whose
+routes were registered under no module, which is how a `cmd/openapi` program
+usually built one, is already in this form, and `openapi:check` passes on it
+unchanged.
+
+### A contract that lists servers the served document must not
+
+`Config.ContractServers` is the `servers` list of the exported document of
+that configuration, in place of `Servers`; the served document keeps
+`Servers`. It is validated as `Servers` is. A public API contract names the
+production URL its SDKs call, while the served document names none, so that
+Swagger UI's "Try it out" calls the origin the page was loaded from and a
+development instance never sends requests to production:
+
+```go
+// Before: the program that wrote the contract set Servers, and the module did not.
+doc, err := swagger.Generate(router.Routes(), registry, swagger.Config{
+	Title:   "Example API",
+	Version: "1.0.0",
+	Servers: []swagger.Server{{URL: "https://api.example.com"}},
+})
+
+// After: one configuration serves no server and exports the production one.
+docs, err := swagger.New(swagger.Config{
+	Enabled:         cfg.App.Env == config.EnvDev,
+	Title:           "Example API",
+	Version:         "1.0.0",
+	ContractServers: []swagger.Server{{URL: "https://api.example.com"}},
+})
+```
+
+A document declared with `docs.Contract(registry, config)` reads
+`ContractServers` from its own `config`. A contract a command of the
+application writes is generated with `swagger.GenerateContract`, which applies
+both rules, so its bytes match what `openapi:export` would write.
+
 ## v0.5.0 — openapi:export, and the contract an application commits
 
 `apidiff` against `v0.4.9` reports compatible additions and nothing else:
