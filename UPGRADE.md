@@ -29,7 +29,9 @@ moved, and the served document, the exported contracts and the published views
 are unchanged. `apidiff` against `v0.6.0` names `(*Module).Routes` as changed,
 from `func(*http.Router)` to `func(*http.Router)`: the framework's `http.Router`
 is now an alias of Hesape's router, so the signature reads the same and a
-module that calls or implements it compiles unchanged.
+module that calls or implements it compiles unchanged. The same entry appears
+for `examples/basic.(*UsersModule).Routes`, the example module that implements
+that method; it changes for the same reason and asks nothing of a caller.
 
 ## v0.6.0 — an exported contract describes the HTTP surface alone
 
