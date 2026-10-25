@@ -1,6 +1,6 @@
 # Upgrade Guide
 
-## Unreleased — Go 1.26.10 is the floor
+## v0.7.0 — Go 1.26.10 is the floor
 
 `go.mod` declares `go 1.26.10`. Every vulnerability an Arandu application
 reaches is in the Go standard library (crypto/x509, the HTTP/2 and CONNECT
