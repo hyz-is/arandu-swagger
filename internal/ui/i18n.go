@@ -93,6 +93,8 @@ func defaultPortugueseTranslations() map[string]string {
 		"Example Value":                "Exemplo",
 		"Schema":                       "Esquema",
 		"Schemas":                      "Esquemas",
+		"Expand all":                   "Expandir tudo",
+		"Collapse all":                 "Recolher tudo",
 
 		// Response execution and results
 		"Server response":      "Resposta do servidor",

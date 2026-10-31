@@ -17,6 +17,14 @@ type ThemeOptions struct {
 	CustomCSS       string
 }
 
+// lightAccent returns the colour accent text takes on the light surfaces: the
+// primary colour mixed half-and-half with black. The primary colour itself is
+// usually a mid or light tone chosen for the dark palette, which cannot reach
+// 4.5:1 as text on white; the mix keeps its hue and does.
+func lightAccent(primary string) string {
+	return "color-mix(in srgb, " + primary + " 50%, #000000)"
+}
+
 // GenerateThemeCSS generates the complete CSS stylesheet for Swagger UI.
 func GenerateThemeCSS(opts ThemeOptions) []byte {
 	primary := opts.PrimaryColor
@@ -59,7 +67,7 @@ func GenerateThemeCSS(opts ThemeOptions) []byte {
 			text = "#3b4151"
 		}
 		if muted == "" {
-			muted = "#6b7280"
+			muted = "#52525b"
 		}
 		if border == "" {
 			border = "#e5e7eb"
@@ -77,6 +85,9 @@ func GenerateThemeCSS(opts ThemeOptions) []byte {
 	css.WriteString(fmt.Sprintf("  --swagger-border: %s;\n", border))
 	css.WriteString("}\n\n")
 
+	// The derived tokens below carry every colour the skin draws that is not
+	// one of the six configurable ones. Each pair is chosen so the text on it
+	// reaches WCAG AA (4.5:1) against the surface it is drawn on.
 	css.WriteString(fmt.Sprintf(`html[data-theme="dark"], body.dark-theme {
   --swagger-primary: %s;
   --swagger-bg: #0a0a0a;
@@ -84,6 +95,19 @@ func GenerateThemeCSS(opts ThemeOptions) []byte {
   --swagger-text: #f4f4f5;
   --swagger-muted: #a1a1aa;
   --swagger-border: #27272a;
+  --swagger-accent-text: %s;
+  --swagger-surface: #18181b;
+  --swagger-btn-bg: #27272a;
+  --swagger-btn-border: #3f3f46;
+  --swagger-btn-text: #f4f4f5;
+  --swagger-btn-hover-bg: #3f3f46;
+  --swagger-btn-hover-text: #ffffff;
+  --swagger-danger-text: #fca5a5;
+  --swagger-danger-bg: rgba(239, 68, 68, 0.15);
+  --swagger-type: #a5b4fc;
+  --swagger-chip-bg: #3f3f46;
+  --swagger-chip-text: #f4f4f5;
+  --swagger-badge-muted: #52525b;
 }
 
 html[data-theme="light"], body.light-theme {
@@ -91,11 +115,24 @@ html[data-theme="light"], body.light-theme {
   --swagger-bg: #ffffff;
   --swagger-card: #fafafa;
   --swagger-text: #18181b;
-  --swagger-muted: #71717a;
+  --swagger-muted: #52525b;
   --swagger-border: #e4e4e7;
+  --swagger-accent-text: %s;
+  --swagger-surface: #f4f4f5;
+  --swagger-btn-bg: #e4e4e7;
+  --swagger-btn-border: #a1a1aa;
+  --swagger-btn-text: #18181b;
+  --swagger-btn-hover-bg: #d4d4d8;
+  --swagger-btn-hover-text: #000000;
+  --swagger-danger-text: #b91c1c;
+  --swagger-danger-bg: rgba(239, 68, 68, 0.1);
+  --swagger-type: #4338ca;
+  --swagger-chip-bg: #e4e4e7;
+  --swagger-chip-text: #18181b;
+  --swagger-badge-muted: #52525b;
 }
 
-`, primary, primary))
+`, primary, primary, primary, lightAccent(primary)))
 
 	css.WriteString(`html, body {
   margin: 0;
@@ -253,8 +290,8 @@ body.dark-theme .arandu-swagger-glyph-light {
 }
 
 .swagger-ui .info .title small {
-  background-color: rgba(20, 184, 166, 0.15);
-  color: var(--swagger-primary);
+  background-color: var(--swagger-chip-bg);
+  color: var(--swagger-accent-text);
   border-radius: 6px;
   padding: 2px 8px;
   font-size: 13px;
@@ -276,8 +313,10 @@ body.dark-theme .arandu-swagger-glyph-light {
   line-height: 1.6;
 }
 
-.swagger-ui .info a {
-  color: var(--swagger-primary);
+.swagger-ui .info a,
+.swagger-ui a.link,
+.swagger-ui .info .link {
+  color: var(--swagger-accent-text);
   text-decoration: none;
 }
 
@@ -310,8 +349,8 @@ body.dark-theme .arandu-swagger-glyph-light {
 }
 
 .swagger-ui .btn.authorize {
-  background-color: rgba(20, 184, 166, 0.1) !important;
-  color: var(--swagger-primary) !important;
+  background-color: var(--swagger-card) !important;
+  color: var(--swagger-accent-text) !important;
   border: 1px solid var(--swagger-primary) !important;
   border-radius: 6px !important;
   padding: 6px 14px !important;
@@ -325,6 +364,12 @@ body.dark-theme .arandu-swagger-glyph-light {
 .swagger-ui .btn.authorize:hover {
   background-color: var(--swagger-primary) !important;
   color: #000000 !important;
+}
+
+.swagger-ui .btn.authorize span,
+.swagger-ui .btn.authorize.locked span,
+.swagger-ui .btn.authorize.unlocked span {
+  color: inherit !important;
 }
 
 .swagger-ui .btn.authorize svg {
@@ -352,9 +397,9 @@ body.dark-theme .arandu-swagger-glyph-light {
 }
 
 .swagger-ui .btn.btn-clear {
-  background-color: #27272a !important;
-  border: 1px solid #3f3f46 !important;
-  color: #f4f4f5 !important;
+  background-color: var(--swagger-btn-bg) !important;
+  border: 1px solid var(--swagger-btn-border) !important;
+  color: var(--swagger-btn-text) !important;
   border-radius: 6px !important;
 }
 
@@ -429,8 +474,8 @@ body.dark-theme .arandu-swagger-glyph-light {
 
 .swagger-ui .opblock .opblock-section-header,
 .swagger-ui .opblock-section-header {
-  background: #18181b !important;
-  background-color: #18181b !important;
+  background: var(--swagger-surface) !important;
+  background-color: var(--swagger-surface) !important;
   border-top: 1px solid var(--swagger-border) !important;
   border-bottom: 1px solid var(--swagger-border) !important;
   color: var(--swagger-text) !important;
@@ -450,9 +495,9 @@ body.dark-theme .arandu-swagger-glyph-light {
 
 .swagger-ui .opblock .opblock-section-header .try-out__btn,
 .swagger-ui .btn.try-out__btn {
-  background-color: #27272a !important;
-  border: 1px solid #3f3f46 !important;
-  color: #f4f4f5 !important;
+  background-color: var(--swagger-btn-bg) !important;
+  border: 1px solid var(--swagger-btn-border) !important;
+  color: var(--swagger-btn-text) !important;
   border-radius: 6px !important;
   padding: 6px 14px !important;
   font-size: 12px !important;
@@ -463,15 +508,15 @@ body.dark-theme .arandu-swagger-glyph-light {
 
 .swagger-ui .opblock .opblock-section-header .try-out__btn:hover,
 .swagger-ui .btn.try-out__btn:hover {
-  background-color: #3f3f46 !important;
-  color: #ffffff !important;
+  background-color: var(--swagger-btn-hover-bg) !important;
+  color: var(--swagger-btn-hover-text) !important;
 }
 
 .swagger-ui .opblock .opblock-section-header .try-out__btn.cancel,
 .swagger-ui .btn.try-out__btn.cancel {
-  background-color: rgba(239, 68, 68, 0.15) !important;
-  border-color: rgba(239, 68, 68, 0.4) !important;
-  color: #f87171 !important;
+  background-color: var(--swagger-danger-bg) !important;
+  border-color: var(--swagger-danger-text) !important;
+  color: var(--swagger-danger-text) !important;
 }
 
 .swagger-ui .tabheader,
@@ -507,7 +552,7 @@ body.dark-theme .arandu-swagger-glyph-light {
   background: rgba(16, 185, 129, 0.05);
 }
 .swagger-ui .opblock.opblock-post .opblock-summary-method {
-  background: #059669;
+  background: #047857;
   color: #ffffff;
 }
 
@@ -516,7 +561,7 @@ body.dark-theme .arandu-swagger-glyph-light {
   background: rgba(245, 158, 11, 0.05);
 }
 .swagger-ui .opblock.opblock-put .opblock-summary-method {
-  background: #d97706;
+  background: #b45309;
   color: #ffffff;
 }
 
@@ -534,8 +579,24 @@ body.dark-theme .arandu-swagger-glyph-light {
   background: rgba(6, 182, 212, 0.05);
 }
 .swagger-ui .opblock.opblock-patch .opblock-summary-method {
-  background: #0891b2;
+  background: #0e7490;
   color: #ffffff;
+}
+
+/* Swagger UI dims a deprecated operation to 60% opacity and paints its badge
+   pale grey under white text, which leaves the whole row near 1.1:1. The row
+   keeps full opacity; the path is struck through and the badge turns neutral. */
+.swagger-ui .opblock.opblock-deprecated {
+  opacity: 1;
+  border-color: var(--swagger-border);
+  background: var(--swagger-card);
+}
+.swagger-ui .opblock.opblock-deprecated .opblock-summary-method {
+  background: var(--swagger-badge-muted);
+  color: #ffffff;
+}
+.swagger-ui .opblock.opblock-deprecated .opblock-summary {
+  border-color: transparent;
 }
 
 .swagger-ui table thead tr td,
@@ -569,7 +630,7 @@ body.dark-theme .arandu-swagger-glyph-light {
 
 .swagger-ui .parameter__extension,
 .swagger-ui .parameter__deprecated {
-  color: #f87171;
+  color: var(--swagger-danger-text);
 }
 
 .swagger-ui input[type=text],
@@ -578,8 +639,8 @@ body.dark-theme .arandu-swagger-glyph-light {
 .swagger-ui input[type=email],
 .swagger-ui textarea,
 .swagger-ui select {
-  background-color: #18181b !important;
-  border: 1px solid var(--swagger-border) !important;
+  background-color: var(--swagger-surface) !important;
+  border: 1px solid var(--swagger-btn-border) !important;
   color: var(--swagger-text) !important;
   border-radius: 6px !important;
   padding: 8px 12px !important;
@@ -617,7 +678,13 @@ body.dark-theme .arandu-swagger-glyph-light {
 }
 
 .swagger-ui code {
-  color: var(--swagger-primary);
+  color: var(--swagger-accent-text);
+}
+
+.swagger-ui pre code,
+.swagger-ui .highlight-code code,
+.swagger-ui .microlight code {
+  color: #e4e4e7;
 }
 
 .swagger-ui section.models {
@@ -650,7 +717,7 @@ body.dark-theme .arandu-swagger-glyph-light {
 }
 
 .swagger-ui .prop-type {
-  color: var(--swagger-primary);
+  color: var(--swagger-accent-text);
 }
 
 .swagger-ui .prop-format {
@@ -703,6 +770,101 @@ body.dark-theme .arandu-swagger-glyph-light {
 
 .swagger-ui .scopes h2 {
   color: var(--swagger-text);
+}
+
+/* Body copy Swagger UI colours with its own fixed greys, drawn here with the
+   palette so it stays readable on either surface. */
+.swagger-ui .opblock-description-wrapper p,
+.swagger-ui .opblock-external-docs-wrapper p,
+.swagger-ui .opblock-title_normal,
+.swagger-ui .opblock-title_normal p,
+.swagger-ui .opblock-body p,
+.swagger-ui .opblock-body li,
+.swagger-ui .opblock-body i,
+.swagger-ui .opblock-body label,
+.swagger-ui .response-col_links,
+.swagger-ui .response-col_description,
+.swagger-ui .response-col_description p,
+.swagger-ui .response-col_description__inner p,
+.swagger-ui table.responses-table td.col_header,
+.swagger-ui table.parameters td.parameters-col_description p,
+.swagger-ui .tab li,
+.swagger-ui .tab li button.tablinks,
+.swagger-ui .markdown p,
+.swagger-ui .renderedMarkdown p {
+  color: var(--swagger-text);
+}
+
+.swagger-ui .opblock-body .response-col_links i,
+.swagger-ui .response-control-media-type__title,
+.swagger-ui .response-control-media-type__accept-message,
+.swagger-ui .opblock .opblock-summary-description,
+.swagger-ui .opblock .opblock-summary-path__deprecated,
+.swagger-ui .opblock-deprecated .opblock-summary-path {
+  color: var(--swagger-muted);
+}
+
+.swagger-ui .tab li button.tablinks {
+  background: transparent;
+}
+
+.swagger-ui a.nostyle,
+.swagger-ui .opblock-external-docs-wrapper a,
+.swagger-ui .opblock-description-wrapper a {
+  color: var(--swagger-accent-text);
+}
+
+/* JSON Schema 2020-12 renderer, used for OpenAPI 3.1 models and bodies. */
+.swagger-ui .json-schema-2020-12 {
+  color: var(--swagger-text);
+}
+
+.swagger-ui .json-schema-2020-12__title,
+.swagger-ui .json-schema-2020-12-keyword__name,
+.swagger-ui .json-schema-2020-12-keyword__name--primary,
+.swagger-ui .json-schema-2020-12-keyword__value,
+.swagger-ui .json-schema-2020-12-keyword__value--primary,
+.swagger-ui .json-schema-2020-12-keyword--description,
+.swagger-ui .json-schema-2020-12-keyword--description p,
+.swagger-ui .json-schema-2020-12-property .json-schema-2020-12__title,
+.swagger-ui .json-schema-2020-12__attribute--secondary,
+.swagger-ui .json-schema-2020-12__attribute--muted {
+  color: var(--swagger-text);
+}
+
+.swagger-ui .json-schema-2020-12__attribute--primary,
+.swagger-ui .json-schema-2020-12__attribute--primary * {
+  color: var(--swagger-type);
+}
+
+.swagger-ui .json-schema-2020-12__attribute--secondary,
+.swagger-ui .json-schema-2020-12__attribute--muted {
+  color: var(--swagger-muted);
+}
+
+.swagger-ui .json-schema-2020-12__constraint {
+  background-color: var(--swagger-chip-bg);
+  color: var(--swagger-chip-text);
+}
+
+.swagger-ui .json-schema-2020-12-expand-deep-button,
+.swagger-ui .json-schema-2020-12-accordion__children-toggle,
+.swagger-ui .json-schema-2020-12-expand-deep-button:disabled {
+  background-color: var(--swagger-btn-bg);
+  color: var(--swagger-btn-text);
+  border: 1px solid var(--swagger-btn-border);
+  border-radius: 6px;
+  opacity: 1;
+}
+
+.swagger-ui .json-schema-2020-12-accordion {
+  background-color: transparent;
+  color: inherit;
+}
+
+.swagger-ui .json-schema-2020-12-expand-deep-button:hover {
+  background-color: var(--swagger-btn-hover-bg);
+  color: var(--swagger-btn-hover-text);
 }
 `)
 

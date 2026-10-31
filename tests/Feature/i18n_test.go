@@ -55,6 +55,11 @@ func TestSwaggerUII18nAndCustomTranslations(t *testing.T) {
 	if !strings.Contains(initBody, `"Authorize":"Fazer Login"`) {
 		t.Errorf("expected custom override \"Authorize\":\"Fazer Login\" in initializer, got: %s", initBody)
 	}
+	for _, want := range []string{`"Expand all":"Expandir tudo"`, `"Collapse all":"Recolher tudo"`} {
+		if !strings.Contains(initBody, want) {
+			t.Errorf("expected default pt-BR %s in initializer, got: %s", want, initBody)
+		}
+	}
 	if !strings.Contains(initBody, `"Try it out":"Testar"`) {
 		t.Errorf("expected default pt-BR \"Try it out\":\"Testar\" in initializer, got: %s", initBody)
 	}

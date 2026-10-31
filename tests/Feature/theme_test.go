@@ -242,3 +242,38 @@ func TestThemeEndpointsCollisionValidation(t *testing.T) {
 		t.Fatalf("New with blank Logo.URL error = %v, want blank error", err)
 	}
 }
+
+// TestThemeKeepsTextReadableOnBothPalettes pins the contrast decisions of the
+// skin: a deprecated operation keeps full opacity, the method badges use the
+// 700-weight fills white text reaches 4.5:1 on, and light-palette accent text
+// is the primary colour mixed with black rather than the raw primary.
+func TestThemeKeepsTextReadableOnBothPalettes(t *testing.T) {
+	t.Parallel()
+
+	router := fhttp.NewRouter()
+	cfg := embeddedConfig()
+	cfg.Theme = swagger.Theme{DarkMode: true, PrimaryColor: "#5eead4"}
+	module := newModule(t, cfg)
+	module.Routes(router.ForModule(module.Name()))
+
+	css := request(router, "/docs/theme.css").Body.String()
+	for _, fragment := range []string{
+		"--swagger-accent-text: color-mix(in srgb, #5eead4 50%, #000000);",
+		"--swagger-accent-text: #5eead4;",
+		".swagger-ui .opblock.opblock-deprecated {\n  opacity: 1;",
+		"background: #047857;",
+		"background: #b45309;",
+		"background: #0e7490;",
+		".swagger-ui .json-schema-2020-12-expand-deep-button",
+		"--swagger-type: #4338ca;",
+	} {
+		if !strings.Contains(css, fragment) {
+			t.Errorf("theme.css missing %q", fragment)
+		}
+	}
+	for _, fragment := range []string{"#059669", "#d97706", "#0891b2", "background: #18181b !important"} {
+		if strings.Contains(css, fragment) {
+			t.Errorf("theme.css still carries the low-contrast value %q", fragment)
+		}
+	}
+}
