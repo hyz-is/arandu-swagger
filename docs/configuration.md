@@ -97,6 +97,8 @@ exported whenever `Title` is set, whether or not `Enabled` is; see
 | `PersistAuthorization` | false | asks Swagger UI to retain authorization data in the browser |
 | `DisableTryItOut` | false | removes all interactive submit methods from Swagger UI |
 | `ImageOrigins` | empty | exact `https` origins the UI page may load images from, beyond its own, `data:` URIs, and the origins of an absolute `Theme.Logo.URL` and `Theme.Favicon` |
+| `ScriptOrigins` | empty | exact `https` origins the UI page may load scripts from, beyond its own: the host-injected script a policy of `script-src 'self'` would otherwise refuse |
+| `ConnectOrigins` | empty | exact `https` origins the UI page may open connections to, beyond its own: where such a script reports to, or a cross-origin API for Try it out |
 | `UIMiddleware` | empty | wraps the UI, initializer, redirect, and asset handlers |
 | `SpecMiddleware` | empty | wraps only the OpenAPI JSON handler |
 
@@ -105,6 +107,8 @@ exported whenever `Title` is set, whether or not `Enabled` is; see
 fragment, wildcard, or scheme other than `https` is rejected, as is an absolute
 `Theme.Logo.URL` or `Theme.Favicon` that does not use `https`. See
 [embedded assets and CSP](assets-csp.md) for the `img-src` directive they build.
+`ScriptOrigins` and `ConnectOrigins` follow the same rules and build the
+`script-src` and `connect-src` directives.
 
 Nil middleware values are rejected. See [filters](filters.md) and
 [production](production.md) for the security and lifecycle implications.

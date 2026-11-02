@@ -20,13 +20,17 @@ import (
 	"github.com/hyz-is/arandu-swagger/internal/ui"
 )
 
-// uiPolicyBefore and uiPolicyAfter are the content security policy of the UI
-// page around its img-src sources and before the value of its last directive,
-// form-action. The image sources depend on the configuration, and form-action
-// is the only directive the two pages that answer the route need differently.
+// The UI page's content security policy is written in pieces, because the
+// directives the configuration can widen sit between ones it cannot: script-src
+// and connect-src take the origins of ScriptOrigins and ConnectOrigins,
+// img-src those of the images, and form-action is the one directive the two
+// pages that answer the route need differently.
 const (
-	uiPolicyBefore = "default-src 'none'; style-src 'self'; style-src-attr 'unsafe-inline'; script-src 'self'; img-src 'self' data:"
-	uiPolicyAfter  = "; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action "
+	uiPolicyStyle = "default-src 'none'; style-src 'self'; style-src-attr 'unsafe-inline'; script-src 'self'"
+	uiPolicyImg   = "; img-src 'self' data:"
+	uiPolicyFont  = "; font-src 'self'"
+	uiPolicyConn  = "; connect-src 'self'"
+	uiPolicyRest  = "; frame-ancestors 'none'; base-uri 'none'; form-action "
 )
 
 const (
@@ -42,17 +46,32 @@ const (
 	embeddedFormAction = "'none'"
 )
 
+// uiOrigins are the origins the configuration adds to the UI page's policy,
+// each list already validated and written once. Everything else in the policy
+// is fixed.
+type uiOrigins struct {
+	image, script, connect []string
+}
+
 // uiContentSecurityPolicy returns the UI page's policy with formAction as the
 // value of form-action. Its img-src admits the page's own origin, data: URIs,
-// and exactly the origins the configuration names, never a whole scheme.
-func uiContentSecurityPolicy(origins []string, formAction string) string {
+// and exactly the origins the configuration names, never a whole scheme; its
+// script-src and connect-src admit their own origin and the exact origins of
+// ScriptOrigins and ConnectOrigins, and nothing else.
+func uiContentSecurityPolicy(origins uiOrigins, formAction string) string {
 	var policy strings.Builder
-	policy.WriteString(uiPolicyBefore)
-	for _, origin := range origins {
-		policy.WriteByte(' ')
-		policy.WriteString(origin)
+	write := func(directive string, listed []string) {
+		policy.WriteString(directive)
+		for _, origin := range listed {
+			policy.WriteByte(' ')
+			policy.WriteString(origin)
+		}
 	}
-	policy.WriteString(uiPolicyAfter)
+	write(uiPolicyStyle, origins.script)
+	write(uiPolicyImg, origins.image)
+	policy.WriteString(uiPolicyFont)
+	write(uiPolicyConn, origins.connect)
+	policy.WriteString(uiPolicyRest)
 	policy.WriteString(formAction)
 	return policy.String()
 }
@@ -110,7 +129,10 @@ func New(cfg Config) (*Module, error) {
 	// A disabled configuration is not validated and registers no route, so an
 	// image URL it names that would be refused is left out of a policy nothing
 	// sends.
-	origins, _ := imageOrigins(snapshot)
+	var origins uiOrigins
+	origins.image, _ = imageOrigins(snapshot)
+	origins.script, _ = exactOrigins("Config.ScriptOrigins", snapshot.ScriptOrigins)
+	origins.connect, _ = exactOrigins("Config.ConnectOrigins", snapshot.ConnectOrigins)
 	return &Module{
 		cfg:            snapshot,
 		registry:       NewRegistry(),

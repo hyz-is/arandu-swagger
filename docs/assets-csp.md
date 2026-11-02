@@ -92,6 +92,32 @@ a wildcard, a path, a query or a fragment. A same-origin path and a `data:`
 URI add nothing to the directive. Any other image the page refers to is
 blocked by the browser.
 
+`script-src` and `connect-src` are `'self'` and nothing else unless the
+configuration lists origins in `ScriptOrigins` and `ConnectOrigins`. They exist
+for a host that injects a script into every page it serves. Cloudflare's web
+analytics does: it adds `https://static.cloudflareinsights.com/beacon.min.js`
+to the HTML, which the application's own policy may allow while this page's
+`script-src 'self'` refuses it, and the browser logs the refusal on every view
+of the documentation. Naming the script's host and the host it reports to
+admits exactly those two:
+
+```go
+swagger.Config{
+	ScriptOrigins:  []string{"https://static.cloudflareinsights.com"},
+	ConnectOrigins: []string{"https://cloudflareinsights.com"},
+}
+```
+
+```text
+script-src 'self' https://static.cloudflareinsights.com
+connect-src 'self' https://cloudflareinsights.com
+```
+
+Each entry follows the `ImageOrigins` rules: an `https` origin with no path,
+query, fragment or wildcard. Listing a script origin trusts every script it
+serves, so list the one host and keep the list as short as the application's
+own policy.
+
 The view's policy covers the whole page the view draws. A published view
 changed to extend an application layout therefore answers under it too: that
 layout's scripts, stylesheets and fonts must be same-origin files, and an

@@ -1,5 +1,27 @@
 # Upgrade Guide
 
+## v0.8.0 — script and connection origins of the UI page
+
+`apidiff` against `v0.7.1` reports compatible additions and nothing else:
+`Config.ScriptOrigins` and `Config.ConnectOrigins`. Both are empty by default,
+and the policy of a configuration that does not set them is byte for byte the
+one it was: `script-src 'self'` and `connect-src 'self'`.
+
+An application whose own policy allows a host-injected script, such as
+Cloudflare's web analytics beacon, no longer has to accept a console error on
+every view of the documentation page. List the script's host and the host it
+reports to:
+
+```go
+swagger.Config{
+	ScriptOrigins:  []string{"https://static.cloudflareinsights.com"},
+	ConnectOrigins: []string{"https://cloudflareinsights.com"},
+}
+```
+
+`New` refuses an entry that is not an `https` origin, or that carries a
+wildcard, a path, a query or a fragment, as it does an `ImageOrigins` entry.
+
 ## v0.7.0 — Go 1.26.10 is the floor
 
 `go.mod` declares `go 1.26.10`. Every vulnerability an Arandu application

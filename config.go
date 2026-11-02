@@ -149,6 +149,26 @@ type Config struct {
 	// optional port; a path, wildcard, or scheme other than https is rejected.
 	ImageOrigins []string
 
+	// ScriptOrigins lists the exact HTTPS origins, such as
+	// "https://static.cloudflareinsights.com", beyond its own that the UI page
+	// may load scripts from. It is for the script a host injects into every
+	// page it serves, such as a web analytics beacon: without it the browser
+	// refuses that script on the documentation page alone and logs an error for
+	// it on every view. Each entry is a scheme and host with an optional port;
+	// a path, wildcard, or scheme other than https is rejected. Listing an
+	// origin trusts every script it serves, so list the one host a script is
+	// loaded from and nothing broader.
+	ScriptOrigins []string
+
+	// ConnectOrigins lists the exact HTTPS origins, such as
+	// "https://cloudflareinsights.com", beyond its own that the UI page may
+	// open connections to: the fetch, XMLHttpRequest, WebSocket and beacon
+	// requests that connect-src governs. It is the second half of
+	// ScriptOrigins for a script that reports back to its own service, and the
+	// way to let Try it out reach a cross-origin API. The same rules as
+	// ImageOrigins apply to each entry.
+	ConnectOrigins []string
+
 	// UIMiddleware wraps the UI and embedded asset handlers in declaration order.
 	UIMiddleware []Middleware
 	// SpecMiddleware wraps the OpenAPI JSON handler in declaration order.
@@ -343,6 +363,12 @@ func validateOperationalConfig(c Config) []error {
 	if _, err := imageOrigins(c); err != nil {
 		issues = append(issues, err)
 	}
+	if _, err := exactOrigins("Config.ScriptOrigins", c.ScriptOrigins); err != nil {
+		issues = append(issues, err)
+	}
+	if _, err := exactOrigins("Config.ConnectOrigins", c.ConnectOrigins); err != nil {
+		issues = append(issues, err)
+	}
 
 	for index, middleware := range c.UIMiddleware {
 		if middleware == nil {
@@ -441,6 +467,8 @@ func cloneConfig(source Config) Config {
 	copy.Translations = cloneTranslations(source.Translations)
 	copy.Theme = cloneTheme(source.Theme)
 	copy.ImageOrigins = append([]string(nil), source.ImageOrigins...)
+	copy.ScriptOrigins = append([]string(nil), source.ScriptOrigins...)
+	copy.ConnectOrigins = append([]string(nil), source.ConnectOrigins...)
 	copy.UIMiddleware = append([]Middleware(nil), source.UIMiddleware...)
 	copy.SpecMiddleware = append([]Middleware(nil), source.SpecMiddleware...)
 	return copy
@@ -616,12 +644,29 @@ func imageOrigins(c Config) ([]string, error) {
 		}
 		add(origin)
 	}
-	for index, entry := range c.ImageOrigins {
-		origin, err := exactImageOrigin(fmt.Sprintf("Config.ImageOrigins[%d]", index), entry)
+	listed, err := exactOrigins("Config.ImageOrigins", c.ImageOrigins)
+	if err != nil {
+		return nil, err
+	}
+	for _, origin := range listed {
+		add(origin)
+	}
+	return origins, nil
+}
+
+// exactOrigins returns the origins a configured list names, each once and in
+// the order given, in the form a CSP directive writes. field names the list in
+// the error, which reports the first entry that is not an https origin.
+func exactOrigins(field string, entries []string) ([]string, error) {
+	var origins []string
+	for index, entry := range entries {
+		origin, err := exactImageOrigin(fmt.Sprintf("%s[%d]", field, index), entry)
 		if err != nil {
 			return nil, err
 		}
-		add(origin)
+		if !slices.Contains(origins, origin) {
+			origins = append(origins, origin)
+		}
 	}
 	return origins, nil
 }

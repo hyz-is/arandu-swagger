@@ -23,6 +23,9 @@ configuration.
 - The UI CSP loads images only from self, `data:` URIs, and the exact https
   origins the configuration names (an absolute logo or favicon URL and
   `ImageOrigins`); never widen `img-src` to a whole scheme.
+- `script-src` and `connect-src` are `'self'` unless the configuration lists
+  exact https origins in `ScriptOrigins` and `ConnectOrigins`; never widen
+  either to a scheme, a wildcard or `'unsafe-inline'`.
 
 `IncludeUndocumented`, `IncludeInternal`, and `PersistAuthorization` widen
 exposure or retention and require an explicit application decision.
