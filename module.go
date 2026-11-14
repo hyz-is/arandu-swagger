@@ -410,6 +410,10 @@ func (m *Module) serveUIAction(ctx *fhttp.Context) error {
 		LogoTarget:         logoTarget,
 		ClassPrefix:        m.cfg.Theme.ClassPrefix,
 	}
+	data.Origin, _ = siteOrigin(m.cfg.Origin)
+	if data.Origin != "" {
+		data.Page.Canonical = data.Origin + m.cfg.UIPath
+	}
 	err := ctx.View(viewName, data)
 	if err == nil {
 		return nil

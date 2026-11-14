@@ -65,6 +65,23 @@ type SwaggerViewData struct {
 	// Translations holds Config.Translations, which Translate consults
 	// before the package's own text.
 	Translations map[string]string
+	// Origin is Config.Origin without a trailing slash, empty when none was
+	// configured. Read it through AbsoluteURL.
+	Origin string
+}
+
+// AbsoluteURL is the absolute address of a path of the application, written
+// against Config.Origin, or empty when no origin was configured. A published
+// view writes its share card with it ("og:image"), because those addresses
+// have to be absolute.
+func (d SwaggerViewData) AbsoluteURL(path string) string {
+	if d.Origin == "" {
+		return ""
+	}
+	if !strings.HasPrefix(path, "/") {
+		path = "/" + path
+	}
+	return d.Origin + path
 }
 
 // ClassPrefixOrDefault returns the prefix of the page's CSS classes, the

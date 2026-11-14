@@ -150,6 +150,18 @@ type Config struct {
 	// Theme configures visual styling, dark mode, colors, branding, and HTMX behavior.
 	Theme Theme
 
+	// Origin is the address the application is served from, such as
+	// "https://acme.example", with no path, query or fragment.
+	//
+	// It comes from the application's configuration and never from a request,
+	// because a canonical address built from the Host header is one a visitor
+	// can choose. With it set, the page of the documentation carries the
+	// absolute canonical address (Origin followed by UIPath), and a published
+	// view can write the absolute address of anything else it names with
+	// SwaggerViewData.AbsoluteURL, the address of a share card for one. Empty
+	// leaves the canonical address as the path UIPath, as before.
+	Origin string
+
 	// ImageOrigins lists the exact HTTPS origins, such as
 	// "https://cdn.example.com", beyond its own origin and data: URIs that the
 	// UI page may load images from, for example an image in an API description.
@@ -417,6 +429,9 @@ func validateOperationalConfig(c Config) []error {
 
 	if c.Theme.Logo != nil && strings.TrimSpace(c.Theme.Logo.URL) == "" {
 		issues = append(issues, fmt.Errorf("swagger: Config.Theme.Logo.URL must not be blank when Logo is configured"))
+	}
+	if _, err := siteOrigin(c.Origin); err != nil {
+		issues = append(issues, err)
 	}
 	if _, err := imageOrigins(c); err != nil {
 		issues = append(issues, err)
@@ -710,6 +725,31 @@ func imageOrigins(c Config) ([]string, error) {
 		add(origin)
 	}
 	return origins, nil
+}
+
+// siteOrigin validates Config.Origin and returns it without a trailing slash,
+// or "" when none was configured. It names the address the application is
+// served from, so a scheme other than http or https, a missing host, a path, a
+// query, a fragment and credentials are all refused.
+func siteOrigin(raw string) (string, error) {
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		return "", nil
+	}
+	if err := rejectSpaceAndControl("Config.Origin", raw); err != nil {
+		return "", err
+	}
+	parsed, err := url.Parse(raw)
+	if err != nil {
+		return "", fmt.Errorf("swagger: Config.Origin %q is not a valid URL: %w", raw, err)
+	}
+	if (parsed.Scheme != "https" && parsed.Scheme != "http") || parsed.Host == "" {
+		return "", fmt.Errorf("swagger: Config.Origin %q must be an http or https origin such as \"https://acme.example\"", raw)
+	}
+	if parsed.User != nil || parsed.Opaque != "" || (parsed.Path != "" && parsed.Path != "/") || parsed.RawQuery != "" || parsed.ForceQuery || parsed.Fragment != "" {
+		return "", fmt.Errorf("swagger: Config.Origin %q must be an origin without credentials, a path, a query or a fragment", raw)
+	}
+	return strings.ToLower(parsed.Scheme) + "://" + strings.ToLower(parsed.Host), nil
 }
 
 // exactOrigins returns the origins a configured list names, each once and in

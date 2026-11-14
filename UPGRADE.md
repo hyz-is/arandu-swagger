@@ -1,5 +1,23 @@
 # Upgrade Guide
 
+## v0.10.0 — the page of the documentation can name its own origin
+
+`apidiff` against `v0.9.0` reports compatible additions and nothing else:
+`Config.Origin`, `SwaggerViewData.Origin` and `SwaggerViewData.AbsoluteURL`.
+`Origin` is empty by default, and a configuration that leaves it so writes the
+page it wrote.
+
+The canonical address of the page is `view.Page.Canonical`, which a layout
+draws as `<link rel="canonical">` and as `og:url`, and its contract is an
+absolute address. The module can only know its own path, so it wrote `/docs`.
+With `Config.Origin = "https://acme.example"`, from the application's
+configuration and never from the request, the canonical address is
+`https://acme.example/docs`, and a published view writes the absolute address of
+anything else it names (the share card, for one) with
+`{{ .AbsoluteURL("/social-cover.png") }}`. An origin with a path, a query,
+credentials or a scheme other than http and https is refused when the module is
+built. There is no migration.
+
 ## v0.9.0 — the brand of the documents and of the page is the application's
 
 `apidiff` against `v0.8.0` reports compatible additions and nothing else:
