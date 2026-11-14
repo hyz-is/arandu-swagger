@@ -70,7 +70,8 @@ The Hesape route table is the routing source of truth. Preserve these rules:
   generation error.
 - Expand concrete `Match` methods. Require explicit documentation methods for
   `ANY`. Do not invent implicit `HEAD` operations for `GET`.
-- Preserve route domains only as `x-arandu-domain`; the current router records
+- Preserve route domains only as `x-arandu-domain` (the vendor segment is
+  `Config.ExtensionPrefix`); the current router records
   them as metadata but does not enforce host dispatch.
 
 ## HTTP and UI surface

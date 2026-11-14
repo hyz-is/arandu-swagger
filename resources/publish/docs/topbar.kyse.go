@@ -11,27 +11,27 @@ import (
 type TopbarViewData = swagger.SwaggerViewData
 @endgo
 
-<header class="arandu-swagger-topbar">
-	<div class="arandu-swagger-topbar-wrapper">
-		<div class="arandu-swagger-topbar-start">
+<header class="{{ .ClassPrefixOrDefault() }}-topbar">
+	<div class="{{ .ClassPrefixOrDefault() }}-topbar-wrapper">
+		<div class="{{ .ClassPrefixOrDefault() }}-topbar-start">
 			<a
 				href="{{ .HomeURLOrDefault() }}"
-				class="arandu-swagger-logo-link"
+				class="{{ .ClassPrefixOrDefault() }}-logo-link"
 				@if(.LogoTarget != "")
 					target="{{ .LogoTarget }}"
 				@endif
 			>
 				@if(.LogoURLOrDefault() != "")
-					<img src="{{ .LogoURLOrDefault() }}" alt="{{ .BrandOrDefault() }}" class="arandu-swagger-logo">
+					<img src="{{ .LogoURLOrDefault() }}" alt="{{ .BrandOrDefault() }}" class="{{ .ClassPrefixOrDefault() }}-logo">
 				@endif
-				<span class="arandu-swagger-title">{{ .BrandOrDefault() }}</span>
+				<span class="{{ .ClassPrefixOrDefault() }}-title">{{ .BrandOrDefault() }}</span>
 			</a>
 		</div>
-		<div class="arandu-swagger-topbar-end">
+		<div class="{{ .ClassPrefixOrDefault() }}-topbar-end">
 			@if(.BackURLOrDefault() != "")
 				<a
 					href="{{ .BackURLOrDefault() }}"
-					class="arandu-swagger-back-link"
+					class="{{ .ClassPrefixOrDefault() }}-back-link"
 					@if(.BackTarget != "")
 						target="{{ .BackTarget }}"
 					@endif
@@ -41,9 +41,9 @@ type TopbarViewData = swagger.SwaggerViewData
 				</a>
 			@endif
 			@if(!.DisableThemeToggle)
-				<button type="button" class="arandu-swagger-theme-toggle" aria-label="{{ .Translate("Toggle theme") }}" title="{{ .Translate("Toggle theme") }}">
-					<span class="arandu-swagger-glyph-light" aria-hidden="true">{!! icons.Sun(icons.Props{}) !!}</span>
-					<span class="arandu-swagger-glyph-dark" aria-hidden="true">{!! icons.Moon(icons.Props{}) !!}</span>
+				<button type="button" class="{{ .ClassPrefixOrDefault() }}-theme-toggle" aria-label="{{ .Translate("Toggle theme") }}" title="{{ .Translate("Toggle theme") }}">
+					<span class="{{ .ClassPrefixOrDefault() }}-glyph-light" aria-hidden="true">{!! icons.Sun(icons.Props{}) !!}</span>
+					<span class="{{ .ClassPrefixOrDefault() }}-glyph-dark" aria-hidden="true">{!! icons.Moon(icons.Props{}) !!}</span>
 				</button>
 			@endif
 		</div>

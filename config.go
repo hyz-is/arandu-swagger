@@ -11,6 +11,8 @@ import (
 	"unicode"
 
 	frameworkhttp "github.com/arandu-io/framework/http"
+
+	"github.com/hyz-is/arandu-swagger/internal/ui"
 )
 
 const (
@@ -25,6 +27,13 @@ const (
 	// DefaultContractDir is the directory openapi:export writes to when
 	// ContractDir is empty, relative to the working directory of the binary.
 	DefaultContractDir = "docs/contracts"
+	// DefaultExtensionPrefix is the vendor segment of the extensions a document
+	// carries when ExtensionPrefix is empty: x-arandu-domain and the like.
+	DefaultExtensionPrefix = "arandu"
+	// DefaultClassPrefix is the prefix of the CSS classes, data attribute and
+	// storage key of the UI page when Theme.ClassPrefix is empty:
+	// arandu-swagger-topbar and the like.
+	DefaultClassPrefix = ui.DefaultClassPrefix
 )
 
 // Middleware wraps one of the HTTP handlers exposed by the package.
@@ -194,10 +203,33 @@ type Config struct {
 	// requests to the origin the page was loaded from and a development
 	// instance never calls production. Each entry is validated as Servers is.
 	ContractServers []Server
+
+	// ExtensionPrefix is the vendor segment of the extensions the document
+	// carries on its operations: "acme" writes x-acme-domain,
+	// x-acme-deprecated-since and x-acme-sunset (and x-acme-module in the
+	// served document). Empty means DefaultExtensionPrefix. It is lowercase
+	// letters, digits and hyphens, starting with a letter. An application whose
+	// customers read the document sets its own name here, so the document
+	// carries no other brand.
+	ExtensionPrefix string
+	// OmitRouteNames leaves the route-name extension (x-<prefix>-route-name)
+	// out of the served document and of the committed contracts. The route
+	// name is how the application's own code addresses a route; the operationId
+	// already identifies the operation to a reader, so an application that
+	// does not want to publish its internal route names sets this.
+	OmitRouteNames bool
 }
 
 // Theme controls visual styling, dark mode, custom colors, branding, and HTMX behavior.
 type Theme struct {
+	// ClassPrefix is the prefix of the CSS classes the embedded page, the
+	// generated stylesheet and the initializer share (<prefix>-topbar,
+	// <prefix>-theme-toggle...), of the page's data attribute and of the
+	// browser storage key that remembers the chosen theme (<prefix>-theme).
+	// Empty means DefaultClassPrefix. It is lowercase letters, digits and
+	// hyphens, starting with a letter. A published view draws the same classes
+	// with SwaggerViewData.ClassPrefixOrDefault.
+	ClassPrefix string
 	// Title overrides the HTML document title. When empty, Config.Title is used.
 	Title string
 	// DarkMode starts the UI in the dark palette.
@@ -322,8 +354,34 @@ func validateContractConfig(c Config) error {
 	return nil
 }
 
+// validateBrandPrefixes reports an ExtensionPrefix or a Theme.ClassPrefix that
+// cannot be written into an extension name or a CSS class.
+func validateBrandPrefixes(c Config) []error {
+	var issues []error
+	if c.ExtensionPrefix != "" && !validPrefix(c.ExtensionPrefix) {
+		issues = append(issues, fmt.Errorf("swagger: Config.ExtensionPrefix %q must be lowercase letters, digits and hyphens, starting with a letter", c.ExtensionPrefix))
+	}
+	if c.Theme.ClassPrefix != "" && !validPrefix(c.Theme.ClassPrefix) {
+		issues = append(issues, fmt.Errorf("swagger: Config.Theme.ClassPrefix %q must be lowercase letters, digits and hyphens, starting with a letter", c.Theme.ClassPrefix))
+	}
+	return issues
+}
+
+func validPrefix(value string) bool {
+	for i, character := range value {
+		switch {
+		case character >= 'a' && character <= 'z':
+		case i > 0 && (character >= '0' && character <= '9' || character == '-'):
+		default:
+			return false
+		}
+	}
+	return value != ""
+}
+
 func validateOperationalConfig(c Config) []error {
 	var issues []error
+	issues = append(issues, validateBrandPrefixes(c)...)
 	if c.DisableSpec && !c.DisableUI {
 		issues = append(issues, fmt.Errorf("swagger: Config.DisableSpec requires Config.DisableUI because the UI reads the public specification endpoint"))
 	}

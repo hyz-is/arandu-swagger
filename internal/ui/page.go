@@ -9,6 +9,9 @@ import (
 
 // PageOptions configures the rendered HTML shell for Swagger UI.
 type PageOptions struct {
+	// ClassPrefix is the prefix of the topbar's classes; empty means
+	// DefaultClassPrefix.
+	ClassPrefix        string
 	Title              string
 	UIPath             string
 	Favicon            string
@@ -39,6 +42,9 @@ type PageLogoOptions struct {
 
 // InitializerOptions configures the JavaScript initializer for Swagger UI.
 type InitializerOptions struct {
+	// ClassPrefix is the prefix of the data attribute, the theme toggle's class
+	// and the storage key; empty means DefaultClassPrefix.
+	ClassPrefix          string
 	SpecPath             string
 	PersistAuthorization bool
 	DisableTryItOut      bool
@@ -60,6 +66,7 @@ func Page(opts PageOptions) []byte {
 	if locale == "" {
 		locale = "en"
 	}
+	prefix := classPrefix(opts.ClassPrefix)
 
 	var page strings.Builder
 	page.WriteString("<!doctype html>\n")
@@ -95,9 +102,9 @@ func Page(opts PageOptions) []byte {
 	hasToggle := !opts.DisableThemeToggle
 
 	if hasLogo || hasBack || hasToggle {
-		page.WriteString("<header class=\"arandu-swagger-topbar\">\n")
-		page.WriteString("  <div class=\"arandu-swagger-topbar-wrapper\">\n")
-		page.WriteString("    <div class=\"arandu-swagger-topbar-start\">\n")
+		page.WriteString("<header class=\"" + prefix + "-topbar\">\n")
+		page.WriteString("  <div class=\"" + prefix + "-topbar-wrapper\">\n")
+		page.WriteString("    <div class=\"" + prefix + "-topbar-start\">\n")
 		if hasLogo {
 			href := opts.Theme.Logo.Href
 			if href == "" {
@@ -113,23 +120,23 @@ func Page(opts PageOptions) []byte {
 			}
 			page.WriteString("      <a href=\"")
 			page.WriteString(html.EscapeString(href))
-			page.WriteString("\" class=\"arandu-swagger-logo-link\" target=\"")
+			page.WriteString("\" class=\"" + prefix + "-logo-link\" target=\"")
 			page.WriteString(html.EscapeString(target))
 			page.WriteString("\">\n")
 			page.WriteString("        <img src=\"")
 			page.WriteString(html.EscapeString(opts.Theme.Logo.URL))
 			page.WriteString("\" alt=\"")
 			page.WriteString(html.EscapeString(alt))
-			page.WriteString("\" class=\"arandu-swagger-logo\">\n")
+			page.WriteString("\" class=\"" + prefix + "-logo\">\n")
 			if alt != "" {
-				page.WriteString("        <span class=\"arandu-swagger-title\">")
+				page.WriteString("        <span class=\"" + prefix + "-title\">")
 				page.WriteString(html.EscapeString(alt))
 				page.WriteString("</span>\n")
 			}
 			page.WriteString("      </a>\n")
 		}
 		page.WriteString("    </div>\n")
-		page.WriteString("    <div class=\"arandu-swagger-topbar-end\">\n")
+		page.WriteString("    <div class=\"" + prefix + "-topbar-end\">\n")
 		if hasBack {
 			backText := opts.BackText
 			if backText == "" {
@@ -145,10 +152,10 @@ func Page(opts PageOptions) []byte {
 			}
 			page.WriteString("      <a href=\"")
 			page.WriteString(html.EscapeString(opts.BackURL))
-			page.WriteString("\" class=\"arandu-swagger-back-link\" target=\"")
+			page.WriteString("\" class=\"" + prefix + "-back-link\" target=\"")
 			page.WriteString(html.EscapeString(backTarget))
 			page.WriteString("\">\n")
-			page.WriteString("        <svg class=\"arandu-swagger-icon\" viewBox=\"0 0 256 256\" width=\"16\" height=\"16\" fill=\"currentColor\" aria-hidden=\"true\"><path d=\"M224,128a8,8,0,0,1-8,8H59.31l58.35,58.34a8,8,0,0,1-11.32,11.32l-72-72a8,8,0,0,1,0-11.32l72-72a8,8,0,0,1,11.32,11.32L59.31,120H216A8,8,0,0,1,224,128Z\"/></svg>\n")
+			page.WriteString("        <svg class=\"" + prefix + "-icon\" viewBox=\"0 0 256 256\" width=\"16\" height=\"16\" fill=\"currentColor\" aria-hidden=\"true\"><path d=\"M224,128a8,8,0,0,1-8,8H59.31l58.35,58.34a8,8,0,0,1-11.32,11.32l-72-72a8,8,0,0,1,0-11.32l72-72a8,8,0,0,1,11.32,11.32L59.31,120H216A8,8,0,0,1,224,128Z\"/></svg>\n")
 			page.WriteString("        <span>")
 			page.WriteString(html.EscapeString(backText))
 			page.WriteString("</span>\n")
@@ -156,13 +163,13 @@ func Page(opts PageOptions) []byte {
 		}
 		if hasToggle {
 			toggleLabel := Translate(locale, opts.Translations, "Toggle theme")
-			page.WriteString("      <button type=\"button\" class=\"arandu-swagger-theme-toggle\" aria-label=\"")
+			page.WriteString("      <button type=\"button\" class=\"" + prefix + "-theme-toggle\" aria-label=\"")
 			page.WriteString(html.EscapeString(toggleLabel))
 			page.WriteString("\" title=\"")
 			page.WriteString(html.EscapeString(toggleLabel))
 			page.WriteString("\">\n")
-			page.WriteString("        <span class=\"arandu-swagger-glyph-light\" aria-hidden=\"true\"><svg viewBox=\"0 0 256 256\" width=\"18\" height=\"18\" fill=\"currentColor\"><path d=\"M120,40V16a8,8,0,0,1,16,0V40a8,8,0,0,1-16,0Zm72,88a64,64,0,1,1-64-64A64.07,64.07,0,0,1,192,128Zm-16,0a48,48,0,1,0-48,48A48.05,48.05,0,0,0,176,128ZM58.34,69.66A8,8,0,0,0,69.66,58.34l-16-16A8,8,0,0,0,42.34,53.66Zm0,116.68-16,16a8,8,0,0,0,11.32,11.32l16-16a8,8,0,0,0-11.32-11.32ZM192,72a8,8,0,0,0,5.66-2.34l16-16a8,8,0,0,0-11.32-11.32l-16,16A8,8,0,0,0,192,72Zm5.66,114.34a8,8,0,0,0-11.32,11.32l16,16a8,8,0,0,0,11.32-11.32ZM48,128a8,8,0,0,0-8-8H16a8,8,0,0,0,0,16H40A8,8,0,0,0,48,128Zm80,80a8,8,0,0,0-8,8v24a8,8,0,0,0,16,0V216A8,8,0,0,0,128,208Zm112-88H216a8,8,0,0,0,0,16h24a8,8,0,0,0,0-16Z\"/></svg></span>\n")
-			page.WriteString("        <span class=\"arandu-swagger-glyph-dark\" aria-hidden=\"true\"><svg viewBox=\"0 0 256 256\" width=\"18\" height=\"18\" fill=\"currentColor\"><path d=\"M233.54,142.23a8,8,0,0,0-8-2,88.08,88.08,0,0,1-109.8-109.8,8,8,0,0,0-10-10,104.84,104.84,0,0,0-52.91,37A104,104,0,0,0,136,224a103.09,103.09,0,0,0,62.52-20.88,104.84,104.84,0,0,0,37-52.91A8,8,0,0,0,233.54,142.23ZM188.9,190.34A88,88,0,0,1,65.66,67.11a89,89,0,0,1,31.4-26A106,106,0,0,0,96,56,104.11,104.11,0,0,0,200,160a106,106,0,0,0,14.92-1.06A89,89,0,0,1,188.9,190.34Z\"/></svg></span>\n")
+			page.WriteString("        <span class=\"" + prefix + "-glyph-light\" aria-hidden=\"true\"><svg viewBox=\"0 0 256 256\" width=\"18\" height=\"18\" fill=\"currentColor\"><path d=\"M120,40V16a8,8,0,0,1,16,0V40a8,8,0,0,1-16,0Zm72,88a64,64,0,1,1-64-64A64.07,64.07,0,0,1,192,128Zm-16,0a48,48,0,1,0-48,48A48.05,48.05,0,0,0,176,128ZM58.34,69.66A8,8,0,0,0,69.66,58.34l-16-16A8,8,0,0,0,42.34,53.66Zm0,116.68-16,16a8,8,0,0,0,11.32,11.32l16-16a8,8,0,0,0-11.32-11.32ZM192,72a8,8,0,0,0,5.66-2.34l16-16a8,8,0,0,0-11.32-11.32l-16,16A8,8,0,0,0,192,72Zm5.66,114.34a8,8,0,0,0-11.32,11.32l16,16a8,8,0,0,0,11.32-11.32ZM48,128a8,8,0,0,0-8-8H16a8,8,0,0,0,0,16H40A8,8,0,0,0,48,128Zm80,80a8,8,0,0,0-8,8v24a8,8,0,0,0,16,0V216A8,8,0,0,0,128,208Zm112-88H216a8,8,0,0,0,0,16h24a8,8,0,0,0,0-16Z\"/></svg></span>\n")
+			page.WriteString("        <span class=\"" + prefix + "-glyph-dark\" aria-hidden=\"true\"><svg viewBox=\"0 0 256 256\" width=\"18\" height=\"18\" fill=\"currentColor\"><path d=\"M233.54,142.23a8,8,0,0,0-8-2,88.08,88.08,0,0,1-109.8-109.8,8,8,0,0,0-10-10,104.84,104.84,0,0,0-52.91,37A104,104,0,0,0,136,224a103.09,103.09,0,0,0,62.52-20.88,104.84,104.84,0,0,0,37-52.91A8,8,0,0,0,233.54,142.23ZM188.9,190.34A88,88,0,0,1,65.66,67.11a89,89,0,0,1,31.4-26A106,106,0,0,0,96,56,104.11,104.11,0,0,0,200,160a106,106,0,0,0,14.92-1.06A89,89,0,0,1,188.9,190.34Z\"/></svg></span>\n")
 			page.WriteString("      </button>\n")
 		}
 		page.WriteString("    </div>\n")
@@ -196,6 +203,7 @@ func Page(opts PageOptions) []byte {
 // Initializer returns the external JavaScript that configures Swagger UI for
 // the same-origin specification endpoint.
 func Initializer(opts InitializerOptions) []byte {
+	prefix := classPrefix(opts.ClassPrefix)
 	encodedPath, _ := json.Marshal(opts.SpecPath)
 
 	var script strings.Builder
@@ -227,7 +235,7 @@ func Initializer(opts InitializerOptions) []byte {
 	// dialog. It is bound here rather than with an onclick attribute, which
 	// the page's script-src 'self' policy refuses to run.
 	script.WriteString(`
-    var authorizers = document.querySelectorAll("[data-arandu-swagger-authorize]");
+    var authorizers = document.querySelectorAll(".` + prefix + `-authorize, [data-` + prefix + `-authorize]");
     for (var a = 0; a < authorizers.length; a++) {
       if (authorizers[a].getAttribute("data-authorize-bound")) continue;
       authorizers[a].setAttribute("data-authorize-bound", "true");
@@ -316,7 +324,7 @@ func Initializer(opts InitializerOptions) []byte {
 `)
 	}
 	if !opts.DisableThemeToggle {
-		script.WriteString(fmt.Sprintf(`    var defaultDark = %t;
+		script.WriteString(strings.ReplaceAll(fmt.Sprintf(`    var defaultDark = %t;
     function applyTheme(theme) {
       if (theme === "light") {
         document.documentElement.setAttribute("data-theme", "light");
@@ -354,7 +362,7 @@ func Initializer(opts InitializerOptions) []byte {
         applyTheme(next);
       });
     }
-`, opts.DefaultDark))
+`, opts.DefaultDark), DefaultClassPrefix+"-", prefix+"-"))
 	}
 	script.WriteString("  }\n\n")
 

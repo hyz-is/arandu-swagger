@@ -408,6 +408,7 @@ func (m *Module) serveUIAction(ctx *fhttp.Context) error {
 		LogoAlt:            logoAlt,
 		LogoHref:           logoHref,
 		LogoTarget:         logoTarget,
+		ClassPrefix:        m.cfg.Theme.ClassPrefix,
 	}
 	err := ctx.View(viewName, data)
 	if err == nil {
@@ -471,6 +472,7 @@ func (m *Module) serveUI(w http.ResponseWriter, _ *http.Request) {
 	}
 
 	opts := ui.PageOptions{
+		ClassPrefix:        m.cfg.Theme.ClassPrefix,
 		Title:              title,
 		UIPath:             m.cfg.UIPath,
 		Favicon:            m.cfg.Theme.Favicon,
@@ -505,6 +507,7 @@ func (m *Module) serveInitializer(w http.ResponseWriter, _ *http.Request) {
 	setNoStoreHeaders(w, "text/javascript; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write(ui.Initializer(ui.InitializerOptions{
+		ClassPrefix:          m.cfg.Theme.ClassPrefix,
 		SpecPath:             m.cfg.SpecPath,
 		PersistAuthorization: m.cfg.PersistAuthorization,
 		DisableTryItOut:      m.cfg.DisableTryItOut,
@@ -520,6 +523,7 @@ func (m *Module) serveThemeCSS(w http.ResponseWriter, _ *http.Request) {
 	setNoStoreHeaders(w, "text/css; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write(ui.GenerateThemeCSS(ui.ThemeOptions{
+		ClassPrefix:     m.cfg.Theme.ClassPrefix,
 		DarkMode:        m.cfg.Theme.DarkMode,
 		PrimaryColor:    m.cfg.Theme.PrimaryColor,
 		BackgroundColor: m.cfg.Theme.BackgroundColor,

@@ -57,7 +57,7 @@ type HeaderViewData = swagger.SwaggerViewData
 				{!! icons.ArrowUpRight(icons.Props{}) !!}
 			</a>
 		@endif
-		<button type="button" class="btn" data-arandu-swagger-authorize>
+		<button type="button" class="btn {{ .ClassPrefixOrDefault() }}-authorize">
 			{!! icons.Lock(icons.Props{}) !!}
 			<span>{{ .Translate("Authorize") }}</span>
 		</button>

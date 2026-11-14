@@ -35,7 +35,15 @@ func renderDocsContainer(kyse__w kyse__io.Writer, kyse__data any) error {
 		_, kyse__err = kyse__io.WriteString(kyse__w, "\n")
 	}
 	if kyse__err == nil {
-		_, kyse__err = kyse__io.WriteString(kyse__w, "<div id=\"swagger-ui\" class=\"arandu-swagger-container\" hx-boost=\"false\"></div>\n")
+		_, kyse__err = kyse__io.WriteString(kyse__w, "<div id=\"swagger-ui\" class=\"")
+	}
+	if kyse__err == nil {
+//line resources/views/docs/container.kyse.go:13
+		_, kyse__err = kyse__io.WriteString(kyse__w, kyse__view.TextAttr(kyse__d.ClassPrefixOrDefault()))
+//line storage/framework/views/docs/container.go:44
+	}
+	if kyse__err == nil {
+		_, kyse__err = kyse__io.WriteString(kyse__w, "-container\" hx-boost=\"false\"></div>\n")
 	}
 	if kyse__err == nil {
 		_, kyse__err = kyse__io.WriteString(kyse__w, "\n")
@@ -47,7 +55,7 @@ func renderDocsContainer(kyse__w kyse__io.Writer, kyse__data any) error {
 		var kyse__v1 string
 //line resources/views/docs/container.kyse.go:15
 		kyse__v1, kyse__err = kyse__view.TextURL(kyse__d.UIPath)
-//line storage/framework/views/docs/container.go:51
+//line storage/framework/views/docs/container.go:59
 		if kyse__err != nil {
 			kyse__err = kyse__fmt.Errorf("%s: %w", "resources/views/docs/container.kyse.go:15", kyse__err)
 		} else {
@@ -64,7 +72,7 @@ func renderDocsContainer(kyse__w kyse__io.Writer, kyse__data any) error {
 		var kyse__v2 string
 //line resources/views/docs/container.kyse.go:16
 		kyse__v2, kyse__err = kyse__view.TextURL(kyse__d.UIPath)
-//line storage/framework/views/docs/container.go:68
+//line storage/framework/views/docs/container.go:76
 		if kyse__err != nil {
 			kyse__err = kyse__fmt.Errorf("%s: %w", "resources/views/docs/container.kyse.go:16", kyse__err)
 		} else {
@@ -81,7 +89,7 @@ func renderDocsContainer(kyse__w kyse__io.Writer, kyse__data any) error {
 		var kyse__v3 string
 //line resources/views/docs/container.kyse.go:17
 		kyse__v3, kyse__err = kyse__view.TextURL(kyse__d.UIPath)
-//line storage/framework/views/docs/container.go:85
+//line storage/framework/views/docs/container.go:93
 		if kyse__err != nil {
 			kyse__err = kyse__fmt.Errorf("%s: %w", "resources/views/docs/container.kyse.go:17", kyse__err)
 		} else {
@@ -98,7 +106,7 @@ func renderDocsContainer(kyse__w kyse__io.Writer, kyse__data any) error {
 		var kyse__v4 string
 //line resources/views/docs/container.kyse.go:18
 		kyse__v4, kyse__err = kyse__view.TextURL(kyse__d.UIPath)
-//line storage/framework/views/docs/container.go:102
+//line storage/framework/views/docs/container.go:110
 		if kyse__err != nil {
 			kyse__err = kyse__fmt.Errorf("%s: %w", "resources/views/docs/container.kyse.go:18", kyse__err)
 		} else {

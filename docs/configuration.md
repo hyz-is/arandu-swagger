@@ -77,9 +77,13 @@ generation. Set only `DisableUI` to expose JSON without an interactive UI.
 | `ContractName` | `api` | names the file `openapi:export` writes, `<ContractDir>/<ContractName>.openapi.json` |
 | `ContractDir` | `docs/contracts` | directory of that file, relative to the working directory of the binary |
 | `ContractServers` | empty | when set, the `servers` of the exported document in place of `Servers`; the served document keeps `Servers` |
+| `ExtensionPrefix` | `arandu` | the vendor segment of the extensions the document carries: `acme` writes `x-acme-domain` and the like, in the served document and in every contract |
+| `OmitRouteNames` | false | leaves the route-name extension out of the served document and of the contracts; the `operationId` identifies the operation |
 
 `ContractName` is one path segment of letters, digits, dots, hyphens and
-underscores that does not start with a dot. `ContractServers` entries are
+underscores that does not start with a dot. `ExtensionPrefix` and
+`Theme.ClassPrefix` are lowercase letters, digits and hyphens that start with a
+letter. `ContractServers` entries are
 validated as `Servers` entries are. The exported document is generated with
 `GenerateContract`, so it carries no `x-arandu-module` and no tag taken from a
 module name. The module's own document is
@@ -99,6 +103,7 @@ exported whenever `Title` is set, whether or not `Enabled` is; see
 | `ImageOrigins` | empty | exact `https` origins the UI page may load images from, beyond its own, `data:` URIs, and the origins of an absolute `Theme.Logo.URL` and `Theme.Favicon` |
 | `ScriptOrigins` | empty | exact `https` origins the UI page may load scripts from, beyond its own: the host-injected script a policy of `script-src 'self'` would otherwise refuse |
 | `ConnectOrigins` | empty | exact `https` origins the UI page may open connections to, beyond its own: where such a script reports to, or a cross-origin API for Try it out |
+| `Theme.ClassPrefix` | `arandu-swagger` | prefix of the CSS classes of the page and stylesheet, of the data attribute and of the browser storage key of the theme: `acme-docs` draws `acme-docs-topbar`; published views write `{{ .ClassPrefixOrDefault() }}` |
 | `UIMiddleware` | empty | wraps the UI, initializer, redirect, and asset handlers |
 | `SpecMiddleware` | empty | wraps only the OpenAPI JSON handler |
 

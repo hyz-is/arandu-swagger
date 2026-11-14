@@ -5,8 +5,23 @@ import (
 	"strings"
 )
 
+// DefaultClassPrefix is the prefix of the classes, the data attribute and the
+// storage key of the page when none is configured.
+const DefaultClassPrefix = "arandu-swagger"
+
+// classPrefix is prefix, or DefaultClassPrefix when it is empty.
+func classPrefix(prefix string) string {
+	if prefix == "" {
+		return DefaultClassPrefix
+	}
+	return prefix
+}
+
 // ThemeOptions provides color, styling, and branding properties for CSS generation.
 type ThemeOptions struct {
+	// ClassPrefix replaces DefaultClassPrefix in the classes the stylesheet
+	// styles; empty means DefaultClassPrefix.
+	ClassPrefix     string
 	DarkMode        bool
 	PrimaryColor    string
 	BackgroundColor string
@@ -868,11 +883,10 @@ body.dark-theme .arandu-swagger-glyph-light {
 }
 `)
 
+	sheet := strings.ReplaceAll(css.String(), DefaultClassPrefix+"-", classPrefix(opts.ClassPrefix)+"-")
 	if opts.CustomCSS != "" {
-		css.WriteString("\n/* User Custom CSS */\n")
-		css.WriteString(opts.CustomCSS)
-		css.WriteString("\n")
+		sheet += "\n/* User Custom CSS */\n" + opts.CustomCSS + "\n"
 	}
 
-	return []byte(css.String())
+	return []byte(sheet)
 }

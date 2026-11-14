@@ -59,9 +59,23 @@ type SwaggerViewData struct {
 	LogoAlt            string
 	LogoHref           string
 	LogoTarget         string
+	// ClassPrefix is Config.Theme.ClassPrefix: the prefix of the classes a
+	// published view draws. Read it with ClassPrefixOrDefault.
+	ClassPrefix string
 	// Translations holds Config.Translations, which Translate consults
 	// before the package's own text.
 	Translations map[string]string
+}
+
+// ClassPrefixOrDefault returns the prefix of the page's CSS classes, the
+// configured Theme.ClassPrefix or DefaultClassPrefix. A published view writes
+// its classes as "{{ .ClassPrefixOrDefault() }}-topbar" so they match the
+// generated stylesheet.
+func (d SwaggerViewData) ClassPrefixOrDefault() string {
+	if d.ClassPrefix != "" {
+		return d.ClassPrefix
+	}
+	return DefaultClassPrefix
 }
 
 // FaviconOrDefault returns the favicon path, defaulting to /favicon.ico.

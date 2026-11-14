@@ -1,5 +1,51 @@
 # Upgrade Guide
 
+## v0.9.0 — the brand of the documents and of the page is the application's
+
+`apidiff` against `v0.8.0` reports compatible additions and nothing else:
+`Config.ExtensionPrefix`, `Config.OmitRouteNames`, `Config.Theme.ClassPrefix`,
+`SwaggerViewData.ClassPrefix`, `SwaggerViewData.ClassPrefixOrDefault`,
+`DefaultExtensionPrefix` and `DefaultClassPrefix`. All three settings are
+empty by default, and a configuration that sets none writes the same documents
+and the same page it did, except for one published view (below).
+
+A customer who reads the documentation of an application sees the vendor
+extensions of its OpenAPI document and the classes of its page. Both said
+`arandu`, which is the framework's name and not the product's:
+
+- `Config.ExtensionPrefix = "acme"` writes `x-acme-route-name`,
+  `x-acme-module`, `x-acme-domain`, `x-acme-deprecated-since` and
+  `x-acme-sunset` in place of the `x-arandu-*` ones, in the served document and
+  in the exported contracts. Set it on the configuration of every document the
+  application declares with `Module.Contract` too.
+- `Config.OmitRouteNames = true` writes no route-name extension at all. The
+  route name is what the application's own code calls a route; the
+  `operationId` already identifies the operation to a reader, and the name
+  would publish the application's internal routes. Nothing in this package
+  reads the extension back.
+- `Config.Theme.ClassPrefix = "acme-docs"` renames the classes of the embedded
+  page and of the generated stylesheet (`acme-docs-topbar`,
+  `acme-docs-theme-toggle`...), the `data-acme-docs-authorize` attribute and the
+  `acme-docs-theme` key under which the browser remembers the chosen theme.
+
+After setting `ExtensionPrefix` or `OmitRouteNames`, run `aru openapi:export`,
+review the diff -- the renamed or removed extensions and nothing else -- and
+commit it. An SDK generator that read `x-arandu-route-name` must read the new
+name, or the `operationId`.
+
+### Published views
+
+The published `docs.topbar` and `docs.container` views draw their classes as
+`{{ .ClassPrefixOrDefault() }}-topbar`, so they follow `Theme.ClassPrefix`;
+publish them again to take that. The Authorize button of `docs.header` is now
+`class="btn {{ .ClassPrefixOrDefault() }}-authorize"` in place of the
+`data-arandu-swagger-authorize` attribute, because the compiler refuses a
+computed attribute name. The initializer binds both the class and the
+attribute, so a header copied from an earlier release keeps working. A view
+copied from an earlier release that writes `arandu-swagger-*` literally keeps
+matching the stylesheet only while `Theme.ClassPrefix` is empty; when it is
+set, change the literal to `{{ .ClassPrefixOrDefault() }}`.
+
 ## v0.8.0 — script and connection origins of the UI page
 
 `apidiff` against `v0.7.1` reports compatible additions and nothing else:

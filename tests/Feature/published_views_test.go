@@ -45,10 +45,10 @@ import (
 //
 // and write the new sums here.
 var compiledViewSources = map[string]string{
-	"container.kyse.go": "b13a78e0732c3f396cb6dfaac565504deb5199fd55dac51f5fffd44b7c987977",
-	"header.kyse.go":    "eb6c99d28bd22bebac86df016de9bad8b398af953af05d8b38a6d6ac5e8f9ea9",
+	"container.kyse.go": "be9b31afa42524148eee14ab4f801bbd33c10fe02b7bf27bfb3dfa4ed6804571",
+	"header.kyse.go":    "4af6fb4fcc13bb4c5c17fc4e211489ff0dfe19e1df8363fc2a758760696af986",
 	"swagger.kyse.go":   "1d9adca6c62e30724582851c95ebf1c3915f8ad7e879496a0bacc8eea446010e",
-	"topbar.kyse.go":    "b94ad1044d0fb43ee78a6f67e43fbf57657fa211d5acbe083fcac261a25726f5",
+	"topbar.kyse.go":    "1563ceee2f5381c3fc0a62375e02d92160b9191dcabdb1f613bf26674555c65e",
 }
 
 func TestCompiledViewsMatchThePublishedSources(t *testing.T) {
@@ -355,13 +355,13 @@ func TestPublishedViewsRunNoScriptThePolicyRefuses(t *testing.T) {
 			t.Errorf("%s writes an inline script or style block:\n%s", name, body)
 		}
 	}
-	if !strings.Contains(pages["docs.header"], "data-arandu-swagger-authorize") {
-		t.Errorf("the header's Authorize button carries no data-arandu-swagger-authorize:\n%s", pages["docs.header"])
+	if !strings.Contains(pages["docs.header"], `class="btn arandu-swagger-authorize"`) {
+		t.Errorf("the header's Authorize button carries no arandu-swagger-authorize class:\n%s", pages["docs.header"])
 	}
 
 	router, _ := mount(t, enabledConfig())
 	initializer := request(router, "/docs/swagger-initializer.js").Body.String()
-	if !strings.Contains(initializer, `document.querySelectorAll("[data-arandu-swagger-authorize]")`) {
+	if !strings.Contains(initializer, `document.querySelectorAll(".arandu-swagger-authorize, [data-arandu-swagger-authorize]")`) {
 		t.Errorf("the initializer does not bind the header's Authorize button:\n%s", initializer)
 	}
 }

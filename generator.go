@@ -30,7 +30,8 @@ var pathPlaceholderPattern = regexp.MustCompile(`\{([^{}]+)\}`)
 // server and is suitable for tests, CI, and static export by application code.
 //
 // The document describes the application as it is composed: each operation
-// carries the module its route is registered under as x-arandu-module, and an
+// carries the module its route is registered under as x-arandu-module (the
+// vendor segment is Config.ExtensionPrefix), and an
 // operation with no tags of its own is tagged with that module. This is the
 // document the module serves. A committed contract is generated with
 // GenerateContract instead.
@@ -140,7 +141,7 @@ func generate(routes []*fhttp.Route, registry *Registry, config Config, contract
 				continue
 			}
 
-			operation, operationIssues := buildOperation(route, method, names, binding, documented, !contract, snapshot.components)
+			operation, operationIssues := buildOperation(route, method, names, binding, documented, !contract, snapshot.components, config)
 			issues = append(issues, operationIssues...)
 			if operation == nil {
 				continue
@@ -430,10 +431,20 @@ func documentServers(config Config, contract bool) []Server {
 	return cloneServers(config.Servers)
 }
 
+// extensionPrefix is the start of the name of every extension the document
+// writes: "x-" and the configured vendor segment, then a hyphen.
+func extensionPrefix(config Config) string {
+	prefix := config.ExtensionPrefix
+	if prefix == "" {
+		prefix = DefaultExtensionPrefix
+	}
+	return "x-" + prefix + "-"
+}
+
 // buildOperation builds the operation of one route and method. composition
 // says whether the operation records the module its route is registered under,
 // as x-arandu-module and as the tag of an otherwise untagged operation.
-func buildOperation(route *fhttp.Route, method string, pathNames []string, binding documentedBinding, documented, composition bool, components Components) (*Operation, []error) {
+func buildOperation(route *fhttp.Route, method string, pathNames []string, binding documentedBinding, documented, composition bool, components Components, config Config) (*Operation, []error) {
 	draft := binding.draft
 	if !documented {
 		draft = operationDraft{
@@ -465,19 +476,20 @@ func buildOperation(route *fhttp.Route, method string, pathNames []string, bindi
 		operation.Tags = []string{route.Module}
 	}
 	operation.OperationID = operationID(route, method, binding, draft)
-	if route.GetName() != "" {
-		operation.Extensions["x-arandu-route-name"] = rawJSON(route.GetName())
+	extension := extensionPrefix(config)
+	if route.GetName() != "" && !config.OmitRouteNames {
+		operation.Extensions[extension+"route-name"] = rawJSON(route.GetName())
 	}
 	if composition && route.Module != "" {
-		operation.Extensions["x-arandu-module"] = rawJSON(route.Module)
+		operation.Extensions[extension+"module"] = rawJSON(route.Module)
 	}
 	if domain := route.GetDomain(); domain != "" {
-		operation.Extensions["x-arandu-domain"] = rawJSON(domain)
+		operation.Extensions[extension+"domain"] = rawJSON(domain)
 	}
 	if route.IsDeprecated() {
 		since, sunset := route.GetDeprecation()
-		operation.Extensions["x-arandu-deprecated-since"] = rawJSON(since.UTC().Format("2006-01-02T15:04:05Z07:00"))
-		operation.Extensions["x-arandu-sunset"] = rawJSON(sunset.UTC().Format("2006-01-02T15:04:05Z07:00"))
+		operation.Extensions[extension+"deprecated-since"] = rawJSON(since.UTC().Format("2006-01-02T15:04:05Z07:00"))
+		operation.Extensions[extension+"sunset"] = rawJSON(sunset.UTC().Format("2006-01-02T15:04:05Z07:00"))
 	}
 
 	var issues []error

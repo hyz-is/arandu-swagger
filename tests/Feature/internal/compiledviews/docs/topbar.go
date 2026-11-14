@@ -36,13 +36,37 @@ func renderDocsTopbar(kyse__w kyse__io.Writer, kyse__data any) error {
 		_, kyse__err = kyse__io.WriteString(kyse__w, "\n")
 	}
 	if kyse__err == nil {
-		_, kyse__err = kyse__io.WriteString(kyse__w, "<header class=\"arandu-swagger-topbar\">\n")
+		_, kyse__err = kyse__io.WriteString(kyse__w, "<header class=\"")
 	}
 	if kyse__err == nil {
-		_, kyse__err = kyse__io.WriteString(kyse__w, "\t<div class=\"arandu-swagger-topbar-wrapper\">\n")
+//line resources/views/docs/topbar.kyse.go:14
+		_, kyse__err = kyse__io.WriteString(kyse__w, kyse__view.TextAttr(kyse__d.ClassPrefixOrDefault()))
+//line storage/framework/views/docs/topbar.go:45
 	}
 	if kyse__err == nil {
-		_, kyse__err = kyse__io.WriteString(kyse__w, "\t\t<div class=\"arandu-swagger-topbar-start\">\n")
+		_, kyse__err = kyse__io.WriteString(kyse__w, "-topbar\">\n")
+	}
+	if kyse__err == nil {
+		_, kyse__err = kyse__io.WriteString(kyse__w, "\t<div class=\"")
+	}
+	if kyse__err == nil {
+//line resources/views/docs/topbar.kyse.go:15
+		_, kyse__err = kyse__io.WriteString(kyse__w, kyse__view.TextAttr(kyse__d.ClassPrefixOrDefault()))
+//line storage/framework/views/docs/topbar.go:56
+	}
+	if kyse__err == nil {
+		_, kyse__err = kyse__io.WriteString(kyse__w, "-topbar-wrapper\">\n")
+	}
+	if kyse__err == nil {
+		_, kyse__err = kyse__io.WriteString(kyse__w, "\t\t<div class=\"")
+	}
+	if kyse__err == nil {
+//line resources/views/docs/topbar.kyse.go:16
+		_, kyse__err = kyse__io.WriteString(kyse__w, kyse__view.TextAttr(kyse__d.ClassPrefixOrDefault()))
+//line storage/framework/views/docs/topbar.go:67
+	}
+	if kyse__err == nil {
+		_, kyse__err = kyse__io.WriteString(kyse__w, "-topbar-start\">\n")
 	}
 	if kyse__err == nil {
 		_, kyse__err = kyse__io.WriteString(kyse__w, "\t\t\t<a\n")
@@ -54,7 +78,7 @@ func renderDocsTopbar(kyse__w kyse__io.Writer, kyse__data any) error {
 		var kyse__v1 string
 //line resources/views/docs/topbar.kyse.go:18
 		kyse__v1, kyse__err = kyse__view.TextURL(kyse__d.HomeURLOrDefault())
-//line storage/framework/views/docs/topbar.go:58
+//line storage/framework/views/docs/topbar.go:82
 		if kyse__err != nil {
 			kyse__err = kyse__fmt.Errorf("%s: %w", "resources/views/docs/topbar.kyse.go:18", kyse__err)
 		} else {
@@ -65,18 +89,26 @@ func renderDocsTopbar(kyse__w kyse__io.Writer, kyse__data any) error {
 		_, kyse__err = kyse__io.WriteString(kyse__w, "\"\n")
 	}
 	if kyse__err == nil {
-		_, kyse__err = kyse__io.WriteString(kyse__w, "\t\t\t\tclass=\"arandu-swagger-logo-link\"\n")
+		_, kyse__err = kyse__io.WriteString(kyse__w, "\t\t\t\tclass=\"")
+	}
+	if kyse__err == nil {
+//line resources/views/docs/topbar.kyse.go:19
+		_, kyse__err = kyse__io.WriteString(kyse__w, kyse__view.TextAttr(kyse__d.ClassPrefixOrDefault()))
+//line storage/framework/views/docs/topbar.go:98
+	}
+	if kyse__err == nil {
+		_, kyse__err = kyse__io.WriteString(kyse__w, "-logo-link\"\n")
 	}
 //line resources/views/docs/topbar.kyse.go:20
 	if kyse__d.LogoTarget != "" {
-//line storage/framework/views/docs/topbar.go:73
+//line storage/framework/views/docs/topbar.go:105
 		if kyse__err == nil {
 			_, kyse__err = kyse__io.WriteString(kyse__w, "\t\t\t\t\ttarget=\"")
 		}
 		if kyse__err == nil {
 //line resources/views/docs/topbar.kyse.go:21
 			_, kyse__err = kyse__io.WriteString(kyse__w, kyse__view.TextAttr(kyse__d.LogoTarget))
-//line storage/framework/views/docs/topbar.go:80
+//line storage/framework/views/docs/topbar.go:112
 		}
 		if kyse__err == nil {
 			_, kyse__err = kyse__io.WriteString(kyse__w, "\"\n")
@@ -87,7 +119,7 @@ func renderDocsTopbar(kyse__w kyse__io.Writer, kyse__data any) error {
 	}
 //line resources/views/docs/topbar.kyse.go:24
 	if kyse__d.LogoURLOrDefault() != "" {
-//line storage/framework/views/docs/topbar.go:91
+//line storage/framework/views/docs/topbar.go:123
 		if kyse__err == nil {
 			_, kyse__err = kyse__io.WriteString(kyse__w, "\t\t\t\t\t<img src=\"")
 		}
@@ -95,7 +127,7 @@ func renderDocsTopbar(kyse__w kyse__io.Writer, kyse__data any) error {
 			var kyse__v2 string
 //line resources/views/docs/topbar.kyse.go:25
 			kyse__v2, kyse__err = kyse__view.TextURL(kyse__d.LogoURLOrDefault())
-//line storage/framework/views/docs/topbar.go:99
+//line storage/framework/views/docs/topbar.go:131
 			if kyse__err != nil {
 				kyse__err = kyse__fmt.Errorf("%s: %w", "resources/views/docs/topbar.kyse.go:25", kyse__err)
 			} else {
@@ -108,19 +140,35 @@ func renderDocsTopbar(kyse__w kyse__io.Writer, kyse__data any) error {
 		if kyse__err == nil {
 //line resources/views/docs/topbar.kyse.go:25
 			_, kyse__err = kyse__io.WriteString(kyse__w, kyse__view.TextAttr(kyse__d.BrandOrDefault()))
-//line storage/framework/views/docs/topbar.go:112
+//line storage/framework/views/docs/topbar.go:144
 		}
 		if kyse__err == nil {
-			_, kyse__err = kyse__io.WriteString(kyse__w, "\" class=\"arandu-swagger-logo\">\n")
+			_, kyse__err = kyse__io.WriteString(kyse__w, "\" class=\"")
+		}
+		if kyse__err == nil {
+//line resources/views/docs/topbar.kyse.go:25
+			_, kyse__err = kyse__io.WriteString(kyse__w, kyse__view.TextAttr(kyse__d.ClassPrefixOrDefault()))
+//line storage/framework/views/docs/topbar.go:152
+		}
+		if kyse__err == nil {
+			_, kyse__err = kyse__io.WriteString(kyse__w, "-logo\">\n")
 		}
 	}
 	if kyse__err == nil {
-		_, kyse__err = kyse__io.WriteString(kyse__w, "\t\t\t\t<span class=\"arandu-swagger-title\">")
+		_, kyse__err = kyse__io.WriteString(kyse__w, "\t\t\t\t<span class=\"")
+	}
+	if kyse__err == nil {
+//line resources/views/docs/topbar.kyse.go:27
+		_, kyse__err = kyse__io.WriteString(kyse__w, kyse__view.TextAttr(kyse__d.ClassPrefixOrDefault()))
+//line storage/framework/views/docs/topbar.go:164
+	}
+	if kyse__err == nil {
+		_, kyse__err = kyse__io.WriteString(kyse__w, "-title\">")
 	}
 	if kyse__err == nil {
 //line resources/views/docs/topbar.kyse.go:27
 		_, kyse__err = kyse__io.WriteString(kyse__w, kyse__template.HTMLEscapeString(kyse__view.Text(kyse__d.BrandOrDefault())))
-//line storage/framework/views/docs/topbar.go:124
+//line storage/framework/views/docs/topbar.go:172
 	}
 	if kyse__err == nil {
 		_, kyse__err = kyse__io.WriteString(kyse__w, "</span>\n")
@@ -132,11 +180,19 @@ func renderDocsTopbar(kyse__w kyse__io.Writer, kyse__data any) error {
 		_, kyse__err = kyse__io.WriteString(kyse__w, "\t\t</div>\n")
 	}
 	if kyse__err == nil {
-		_, kyse__err = kyse__io.WriteString(kyse__w, "\t\t<div class=\"arandu-swagger-topbar-end\">\n")
+		_, kyse__err = kyse__io.WriteString(kyse__w, "\t\t<div class=\"")
+	}
+	if kyse__err == nil {
+//line resources/views/docs/topbar.kyse.go:30
+		_, kyse__err = kyse__io.WriteString(kyse__w, kyse__view.TextAttr(kyse__d.ClassPrefixOrDefault()))
+//line storage/framework/views/docs/topbar.go:189
+	}
+	if kyse__err == nil {
+		_, kyse__err = kyse__io.WriteString(kyse__w, "-topbar-end\">\n")
 	}
 //line resources/views/docs/topbar.kyse.go:31
 	if kyse__d.BackURLOrDefault() != "" {
-//line storage/framework/views/docs/topbar.go:140
+//line storage/framework/views/docs/topbar.go:196
 		if kyse__err == nil {
 			_, kyse__err = kyse__io.WriteString(kyse__w, "\t\t\t\t<a\n")
 		}
@@ -147,7 +203,7 @@ func renderDocsTopbar(kyse__w kyse__io.Writer, kyse__data any) error {
 			var kyse__v3 string
 //line resources/views/docs/topbar.kyse.go:33
 			kyse__v3, kyse__err = kyse__view.TextURL(kyse__d.BackURLOrDefault())
-//line storage/framework/views/docs/topbar.go:151
+//line storage/framework/views/docs/topbar.go:207
 			if kyse__err != nil {
 				kyse__err = kyse__fmt.Errorf("%s: %w", "resources/views/docs/topbar.kyse.go:33", kyse__err)
 			} else {
@@ -158,18 +214,26 @@ func renderDocsTopbar(kyse__w kyse__io.Writer, kyse__data any) error {
 			_, kyse__err = kyse__io.WriteString(kyse__w, "\"\n")
 		}
 		if kyse__err == nil {
-			_, kyse__err = kyse__io.WriteString(kyse__w, "\t\t\t\t\tclass=\"arandu-swagger-back-link\"\n")
+			_, kyse__err = kyse__io.WriteString(kyse__w, "\t\t\t\t\tclass=\"")
+		}
+		if kyse__err == nil {
+//line resources/views/docs/topbar.kyse.go:34
+			_, kyse__err = kyse__io.WriteString(kyse__w, kyse__view.TextAttr(kyse__d.ClassPrefixOrDefault()))
+//line storage/framework/views/docs/topbar.go:223
+		}
+		if kyse__err == nil {
+			_, kyse__err = kyse__io.WriteString(kyse__w, "-back-link\"\n")
 		}
 //line resources/views/docs/topbar.kyse.go:35
 		if kyse__d.BackTarget != "" {
-//line storage/framework/views/docs/topbar.go:166
+//line storage/framework/views/docs/topbar.go:230
 			if kyse__err == nil {
 				_, kyse__err = kyse__io.WriteString(kyse__w, "\t\t\t\t\t\ttarget=\"")
 			}
 			if kyse__err == nil {
 //line resources/views/docs/topbar.kyse.go:36
 				_, kyse__err = kyse__io.WriteString(kyse__w, kyse__view.TextAttr(kyse__d.BackTarget))
-//line storage/framework/views/docs/topbar.go:173
+//line storage/framework/views/docs/topbar.go:237
 			}
 			if kyse__err == nil {
 				_, kyse__err = kyse__io.WriteString(kyse__w, "\"\n")
@@ -184,7 +248,7 @@ func renderDocsTopbar(kyse__w kyse__io.Writer, kyse__data any) error {
 		if kyse__err == nil {
 //line resources/views/docs/topbar.kyse.go:39
 			var kyse__v4 kyse__template.HTML = icons.ArrowLeft(icons.Props{})
-//line storage/framework/views/docs/topbar.go:188
+//line storage/framework/views/docs/topbar.go:252
 			_, kyse__err = kyse__io.WriteString(kyse__w, string(kyse__v4))
 		}
 		if kyse__err == nil {
@@ -196,7 +260,7 @@ func renderDocsTopbar(kyse__w kyse__io.Writer, kyse__data any) error {
 		if kyse__err == nil {
 //line resources/views/docs/topbar.kyse.go:40
 			_, kyse__err = kyse__io.WriteString(kyse__w, kyse__template.HTMLEscapeString(kyse__view.Text(kyse__d.BackTextOrDefault())))
-//line storage/framework/views/docs/topbar.go:200
+//line storage/framework/views/docs/topbar.go:264
 		}
 		if kyse__err == nil {
 			_, kyse__err = kyse__io.WriteString(kyse__w, "</span>\n")
@@ -207,14 +271,22 @@ func renderDocsTopbar(kyse__w kyse__io.Writer, kyse__data any) error {
 	}
 //line resources/views/docs/topbar.kyse.go:43
 	if !kyse__d.DisableThemeToggle {
-//line storage/framework/views/docs/topbar.go:211
+//line storage/framework/views/docs/topbar.go:275
 		if kyse__err == nil {
-			_, kyse__err = kyse__io.WriteString(kyse__w, "\t\t\t\t<button type=\"button\" class=\"arandu-swagger-theme-toggle\" aria-label=\"")
+			_, kyse__err = kyse__io.WriteString(kyse__w, "\t\t\t\t<button type=\"button\" class=\"")
+		}
+		if kyse__err == nil {
+//line resources/views/docs/topbar.kyse.go:44
+			_, kyse__err = kyse__io.WriteString(kyse__w, kyse__view.TextAttr(kyse__d.ClassPrefixOrDefault()))
+//line storage/framework/views/docs/topbar.go:282
+		}
+		if kyse__err == nil {
+			_, kyse__err = kyse__io.WriteString(kyse__w, "-theme-toggle\" aria-label=\"")
 		}
 		if kyse__err == nil {
 //line resources/views/docs/topbar.kyse.go:44
 			_, kyse__err = kyse__io.WriteString(kyse__w, kyse__view.TextAttr(kyse__d.Translate("Toggle theme")))
-//line storage/framework/views/docs/topbar.go:218
+//line storage/framework/views/docs/topbar.go:290
 		}
 		if kyse__err == nil {
 			_, kyse__err = kyse__io.WriteString(kyse__w, "\" title=\"")
@@ -222,30 +294,46 @@ func renderDocsTopbar(kyse__w kyse__io.Writer, kyse__data any) error {
 		if kyse__err == nil {
 //line resources/views/docs/topbar.kyse.go:44
 			_, kyse__err = kyse__io.WriteString(kyse__w, kyse__view.TextAttr(kyse__d.Translate("Toggle theme")))
-//line storage/framework/views/docs/topbar.go:226
+//line storage/framework/views/docs/topbar.go:298
 		}
 		if kyse__err == nil {
 			_, kyse__err = kyse__io.WriteString(kyse__w, "\">\n")
 		}
 		if kyse__err == nil {
-			_, kyse__err = kyse__io.WriteString(kyse__w, "\t\t\t\t\t<span class=\"arandu-swagger-glyph-light\" aria-hidden=\"true\">")
+			_, kyse__err = kyse__io.WriteString(kyse__w, "\t\t\t\t\t<span class=\"")
+		}
+		if kyse__err == nil {
+//line resources/views/docs/topbar.kyse.go:45
+			_, kyse__err = kyse__io.WriteString(kyse__w, kyse__view.TextAttr(kyse__d.ClassPrefixOrDefault()))
+//line storage/framework/views/docs/topbar.go:309
+		}
+		if kyse__err == nil {
+			_, kyse__err = kyse__io.WriteString(kyse__w, "-glyph-light\" aria-hidden=\"true\">")
 		}
 		if kyse__err == nil {
 //line resources/views/docs/topbar.kyse.go:45
 			var kyse__v5 kyse__template.HTML = icons.Sun(icons.Props{})
-//line storage/framework/views/docs/topbar.go:237
+//line storage/framework/views/docs/topbar.go:317
 			_, kyse__err = kyse__io.WriteString(kyse__w, string(kyse__v5))
 		}
 		if kyse__err == nil {
 			_, kyse__err = kyse__io.WriteString(kyse__w, "</span>\n")
 		}
 		if kyse__err == nil {
-			_, kyse__err = kyse__io.WriteString(kyse__w, "\t\t\t\t\t<span class=\"arandu-swagger-glyph-dark\" aria-hidden=\"true\">")
+			_, kyse__err = kyse__io.WriteString(kyse__w, "\t\t\t\t\t<span class=\"")
+		}
+		if kyse__err == nil {
+//line resources/views/docs/topbar.kyse.go:46
+			_, kyse__err = kyse__io.WriteString(kyse__w, kyse__view.TextAttr(kyse__d.ClassPrefixOrDefault()))
+//line storage/framework/views/docs/topbar.go:329
+		}
+		if kyse__err == nil {
+			_, kyse__err = kyse__io.WriteString(kyse__w, "-glyph-dark\" aria-hidden=\"true\">")
 		}
 		if kyse__err == nil {
 //line resources/views/docs/topbar.kyse.go:46
 			var kyse__v6 kyse__template.HTML = icons.Moon(icons.Props{})
-//line storage/framework/views/docs/topbar.go:249
+//line storage/framework/views/docs/topbar.go:337
 			_, kyse__err = kyse__io.WriteString(kyse__w, string(kyse__v6))
 		}
 		if kyse__err == nil {

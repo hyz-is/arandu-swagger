@@ -309,7 +309,7 @@ application is written by `openapi:export` (see
 | Optional `{id?}` or multi-segment `{path...}` | generation error |
 | Unnormalized qualified binding such as `{post:slug}` | generation error until Hesape supplies the cleaned `{post}` pattern |
 | Generic Go regex not portable to ECMAScript | generation error |
-| Route domain | preserved as `x-arandu-domain`, not treated as an enforced server |
+| Route domain | preserved as `x-arandu-domain` (`x-<ExtensionPrefix>-domain`), not treated as an enforced server |
 
 Constraints are preserved as string patterns when portable. Arandu Swagger
 does not narrow a route's runtime contract by guessing integer, UUID, ULID, or

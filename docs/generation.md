@@ -38,7 +38,9 @@ document, err := swagger.GenerateContract(router.Routes(), registry, config)
 It leaves the module out -- no `x-arandu-module`, and an untagged operation
 stays untagged -- because which module registers a route is how the
 application is composed, not part of its HTTP surface. `x-arandu-route-name`,
-`x-arandu-domain` and the deprecation extensions stay. When
+`x-arandu-domain` and the deprecation extensions stay, unless the application
+renames them with `Config.ExtensionPrefix` (`x-acme-route-name`) or drops the
+route name with `Config.OmitRouteNames`. When
 `Config.ContractServers` is set, it is the document's `servers` in place of
 `Config.Servers`.
 
