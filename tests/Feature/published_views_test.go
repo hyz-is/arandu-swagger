@@ -45,7 +45,7 @@ import (
 //
 // and write the new sums here.
 var compiledViewSources = map[string]string{
-	"container.kyse.go": "be9b31afa42524148eee14ab4f801bbd33c10fe02b7bf27bfb3dfa4ed6804571",
+	"container.kyse.go": "df7a4e277b1991eda99e3e9a77dd592c463b234dfba458efec3723fc1abb623e",
 	"header.kyse.go":    "4af6fb4fcc13bb4c5c17fc4e211489ff0dfe19e1df8363fc2a758760696af986",
 	"swagger.kyse.go":   "1d9adca6c62e30724582851c95ebf1c3915f8ad7e879496a0bacc8eea446010e",
 	"topbar.kyse.go":    "1563ceee2f5381c3fc0a62375e02d92160b9191dcabdb1f613bf26674555c65e",

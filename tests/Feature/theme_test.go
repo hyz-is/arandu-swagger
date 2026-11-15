@@ -139,13 +139,13 @@ func TestThemeRendersBackLinkAndThemeToggleInTopbar(t *testing.T) {
 	}
 }
 
-func TestHTMXLifecycleAndBoostAttribute(t *testing.T) {
+func TestYPYLifecycleAndBoostAttribute(t *testing.T) {
 	t.Parallel()
 
 	router := fhttp.NewRouter()
 	cfg := embeddedConfig()
 	cfg.Theme = swagger.Theme{
-		HTMX: swagger.HTMXConfig{
+		YPY: swagger.YPYConfig{
 			Enabled: true,
 			Boost:   true,
 		},
@@ -157,8 +157,8 @@ func TestHTMXLifecycleAndBoostAttribute(t *testing.T) {
 	if page.Code != http.StatusOK {
 		t.Fatalf("GET /docs answered %d", page.Code)
 	}
-	if !strings.Contains(page.Body.String(), `<div id="swagger-ui" hx-boost="false"></div>`) {
-		t.Errorf("/docs missing hx-boost attribute on #swagger-ui: %s", page.Body.String())
+	if !strings.Contains(page.Body.String(), `<div id="swagger-ui" ypy-boost="false"></div>`) {
+		t.Errorf("/docs missing ypy-boost attribute on #swagger-ui: %s", page.Body.String())
 	}
 
 	initScript := request(router, "/docs/swagger-initializer.js")
@@ -169,11 +169,11 @@ func TestHTMXLifecycleAndBoostAttribute(t *testing.T) {
 	js := initScript.Body.String()
 	for _, expected := range []string{
 		`data-swagger-initialized`,
-		`document.addEventListener("htmx:load"`,
-		`document.addEventListener("htmx:afterSettle"`,
+		`document.addEventListener("ypy:after:process"`,
+		`document.addEventListener("ypy:after:settle"`,
 	} {
 		if !strings.Contains(js, expected) {
-			t.Errorf("swagger-initializer.js missing HTMX fragment %q", expected)
+			t.Errorf("swagger-initializer.js missing YPY fragment %q", expected)
 		}
 	}
 }

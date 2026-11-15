@@ -1,5 +1,25 @@
 # Upgrade Guide
 
+## Unreleased — the page cooperates with YPY
+
+`apidiff` against `v0.10.0` reports an incompatible change: the `Theme` field
+named after the old library and its `...Config` type are removed, and
+`Theme.YPY` and the type `YPYConfig` take their place. The fields are the same,
+`Enabled` and `Boost`, with the same meaning. There is no alias for the old names.
+
+Move the value of that field to `Theme: swagger.Theme{YPY: swagger.YPYConfig{...}}`. What the page writes
+changes with it:
+
+- the container carries `ypy-boost="false"` where it carried the attribute of
+  the old library, so YPY leaves the buttons and forms of Swagger UI alone;
+- with `Enabled`, the initializer starts Swagger UI again on `ypy:after:process`
+  and `ypy:after:settle` when the element they fire on is, or contains,
+  `#swagger-ui`, where it listened to the events of the old library.
+
+An application that published the `docs/container` view and kept
+the old attribute on `#swagger-ui` must write `ypy-boost="false"` there, or YPY
+boosts Swagger UI's own links and forms.
+
 ## v0.10.0 — the page of the documentation can name its own origin
 
 `apidiff` against `v0.9.0` reports compatible additions and nothing else:
@@ -705,7 +725,7 @@ the data handed to them named a product, a home path and a logo when no
 ### The page is themed by default
 
 `Config` gained `Locale`, `Translations`, `ViewName`, `JSONSchemaDialect` and
-`Theme` (with `ThemeLogo` and `HTMXConfig`). `Config.HasTheme` reports true for
+`Theme` (with `ThemeLogo` and the configuration of the old library). `Config.HasTheme` reports true for
 the zero `Theme`, because the theme toggle is on unless
 `Theme.DisableThemeToggle` is set. So with no theming configured the module
 registers `GET <UIPath>/theme.css`, and the embedded page links it and draws a

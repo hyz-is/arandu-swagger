@@ -43,7 +43,7 @@ func renderDocsContainer(kyse__w kyse__io.Writer, kyse__data any) error {
 //line storage/framework/views/docs/container.go:44
 	}
 	if kyse__err == nil {
-		_, kyse__err = kyse__io.WriteString(kyse__w, "-container\" hx-boost=\"false\"></div>\n")
+		_, kyse__err = kyse__io.WriteString(kyse__w, "-container\" ypy-boost=\"false\"></div>\n")
 	}
 	if kyse__err == nil {
 		_, kyse__err = kyse__io.WriteString(kyse__w, "\n")

@@ -147,7 +147,7 @@ type Config struct {
 	// the embedded standalone HTML shell is served as fallback.
 	ViewName string
 
-	// Theme configures visual styling, dark mode, colors, branding, and HTMX behavior.
+	// Theme configures visual styling, dark mode, colors, branding, and YPY behavior.
 	Theme Theme
 
 	// Origin is the address the application is served from, such as
@@ -232,7 +232,7 @@ type Config struct {
 	OmitRouteNames bool
 }
 
-// Theme controls visual styling, dark mode, custom colors, branding, and HTMX behavior.
+// Theme controls visual styling, dark mode, custom colors, branding, and YPY behavior.
 type Theme struct {
 	// ClassPrefix is the prefix of the CSS classes the embedded page, the
 	// generated stylesheet and the initializer share (<prefix>-topbar,
@@ -286,8 +286,9 @@ type Theme struct {
 	CustomCSS string
 	// CustomJS is custom JavaScript served and executed on the page.
 	CustomJS string
-	// HTMX configures HTMX-specific compatibility options.
-	HTMX HTMXConfig
+	// YPY configures how the page cooperates with YPY, the hypermedia
+	// library that drives a boosted application.
+	YPY YPYConfig
 }
 
 // ThemeLogo configures the brand logo in the Swagger UI topbar.
@@ -304,12 +305,13 @@ type ThemeLogo struct {
 	Target string
 }
 
-// HTMXConfig configures HTMX compatibility behavior.
-type HTMXConfig struct {
-	// Enabled adds HTMX lifecycle support to Swagger UI initialization.
+// YPYConfig configures how the documentation page cooperates with YPY.
+type YPYConfig struct {
+	// Enabled initializes Swagger UI again when YPY processes new content or
+	// settles a swap that carries the Swagger UI container.
 	Enabled bool
-	// Boost controls whether the Swagger UI container sets hx-boost="false"
-	// to prevent HTMX from intercepting Swagger UI's internal buttons and forms.
+	// Boost controls whether the Swagger UI container sets ypy-boost="false"
+	// to prevent YPY from intercepting Swagger UI's internal buttons and forms.
 	// When Enabled is true, Boost defaults to true.
 	Boost bool
 }

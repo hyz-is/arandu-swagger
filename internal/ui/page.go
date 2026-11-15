@@ -20,7 +20,7 @@ type PageOptions struct {
 	HasTheme           bool
 	Theme              PageThemeOptions
 	HasCustomJS        bool
-	HTMXBoost          bool
+	YPYBoost           bool
 	BackURL            string
 	BackText           string
 	BackTarget         string
@@ -48,7 +48,7 @@ type InitializerOptions struct {
 	SpecPath             string
 	PersistAuthorization bool
 	DisableTryItOut      bool
-	HTMX                 bool
+	YPY                  bool
 	Locale               string
 	Translations         map[string]string
 	DefaultDark          bool
@@ -177,8 +177,8 @@ func Page(opts PageOptions) []byte {
 		page.WriteString("</header>\n")
 	}
 
-	if opts.HTMXBoost {
-		page.WriteString("<div id=\"swagger-ui\" hx-boost=\"false\"></div>\n")
+	if opts.YPYBoost {
+		page.WriteString("<div id=\"swagger-ui\" ypy-boost=\"false\"></div>\n")
 	} else {
 		page.WriteString("<div id=\"swagger-ui\"></div>\n")
 	}
@@ -372,18 +372,16 @@ func Initializer(opts InitializerOptions) []byte {
 	script.WriteString("    window.addEventListener(\"DOMContentLoaded\", initSwagger);\n")
 	script.WriteString("  }\n")
 
-	if opts.HTMX {
-		script.WriteString("\n  // HTMX lifecycle integration\n")
-		script.WriteString("  document.addEventListener(\"htmx:load\", function (evt) {\n")
-		script.WriteString("    if (!evt.detail || !evt.detail.elt || evt.detail.elt.querySelector(\"#swagger-ui\") || evt.detail.elt.id === \"swagger-ui\") {\n")
+	if opts.YPY {
+		script.WriteString("\n  // YPY lifecycle integration\n")
+		script.WriteString("  function reinitFor(evt) {\n")
+		script.WriteString("    var elt = evt.target;\n")
+		script.WriteString("    if (!elt || !elt.querySelector || elt.id === \"swagger-ui\" || elt.querySelector(\"#swagger-ui\")) {\n")
 		script.WriteString("      initSwagger();\n")
 		script.WriteString("    }\n")
-		script.WriteString("  });\n")
-		script.WriteString("  document.addEventListener(\"htmx:afterSettle\", function (evt) {\n")
-		script.WriteString("    if (!evt.detail || !evt.detail.elt || evt.detail.elt.querySelector(\"#swagger-ui\") || evt.detail.elt.id === \"swagger-ui\") {\n")
-		script.WriteString("      initSwagger();\n")
-		script.WriteString("    }\n")
-		script.WriteString("  });\n")
+		script.WriteString("  }\n")
+		script.WriteString("  document.addEventListener(\"ypy:after:process\", reinitFor);\n")
+		script.WriteString("  document.addEventListener(\"ypy:after:settle\", reinitFor);\n")
 	}
 
 	script.WriteString("})();\n")
