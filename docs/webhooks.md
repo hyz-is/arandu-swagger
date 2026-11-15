@@ -21,7 +21,8 @@ if err := docs.Models(
 	swagger.ModelOf[resources.Order]("Order"),
 	swagger.ModelOf[resources.OrderEvent]("OrderEvent"),
 ); err != nil {
-	return App{}, err
+	_ = drivers.Close()
+	return nil, err
 }
 
 webhooks := make([]swagger.Webhook, 0, len(events.Names()))
@@ -38,7 +39,8 @@ for _, name := range events.Names() {
 	})
 }
 if err := docs.Webhooks(webhooks...); err != nil {
-	return App{}, err
+	_ = drivers.Close()
+	return nil, err
 }
 ```
 

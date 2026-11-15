@@ -1,7 +1,10 @@
 # Explicit bootstrap wiring
 
-Arandu Swagger is constructed and registered in `bootstrap/app.go`. There is
-no provider, container binding, package singleton, or discovery step.
+Arandu Swagger is constructed in `App`, in `bootstrap/app.go`, once
+`NewAppServiceProvider` has returned, and listed in the `WithProviders(...)`
+chain the builder is made of. `Configure` has no way to return the error of
+`New`, so the module is built where the error can leave. There is no provider,
+container binding, package singleton, or discovery step.
 
 ## 1. Construct the documentation module
 
@@ -13,7 +16,8 @@ docs, err := swagger.New(swagger.Config{
 	Description: "HTTP API documentation.",
 })
 if err != nil {
-	return App{}, err
+	_ = drivers.Close()
+	return nil, err
 }
 ```
 
@@ -25,10 +29,12 @@ error.
 
 ```go
 if err := docs.Schema("Problem", problemSchema); err != nil {
-	return App{}, err
+	_ = drivers.Close()
+	return nil, err
 }
 if err := docs.SecurityScheme("bearerAuth", swagger.HTTPBearer("JWT")); err != nil {
-	return App{}, err
+	_ = drivers.Close()
+	return nil, err
 }
 ```
 
@@ -50,18 +56,22 @@ func New(cfg Config, db *data.DB, sessions security.Sessions, docs swagger.Docum
 This keeps route documentation explicit and makes the application module easy
 to test with a dedicated `swagger.Registry`.
 
-## 4. Register Swagger last
+## 4. List Swagger last
 
 ```go
-usersModule, err := users.New(users.Config{}, db, sessions, docs)
+usersModule, err := users.New(users.Config{}, drivers.DB, drivers.Sessions, docs)
 if err != nil {
-	return App{}, err
+	_ = drivers.Close()
+	return nil, err
 }
 
-app.Register(usersModule, billingModule, docs)
+return Configure(cfg, drivers, app).
+	WithProviders(usersModule, billingModule, docs).
+	WithVersion(version, commit).
+	Create()
 ```
 
-Registering it last makes the composition order readable and ensures its own
+Listing it last makes the composition order readable and ensures its own
 routes appear after application routes. Correct generation is also lazy: its
 `Routes` method stores the shared router pointer, and the first request after
 `foundation.Application.Boot` reads `Router.Routes()`. It does not take a route

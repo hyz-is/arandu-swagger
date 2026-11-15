@@ -100,7 +100,8 @@ if err := docs.Contract(api, swagger.Config{
 	ContractName: "public",
 	Filter:       swagger.RouteFilter{IncludePrefixes: []string{"/api/"}},
 }); err != nil {
-	return App{}, err
+	_ = drivers.Close()
+	return nil, err
 }
 ```
 

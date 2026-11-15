@@ -18,8 +18,10 @@ policy, service provider, container, or global registry.
 go get github.com/hyz-is/arandu-swagger
 ```
 
-Construct one instance in `bootstrap/app.go`, pass its small `Documenter`
-interface to modules that declare API routes, and register Swagger explicitly:
+Construct one instance in `App`, in `bootstrap/app.go`, once
+`NewAppServiceProvider` has returned. Pass its small `Documenter` interface to
+modules that declare API routes, and list Swagger in the `WithProviders(...)`
+chain the builder is made of:
 
 ```go
 swaggerModule, err := swagger.New(swagger.Config{
@@ -31,18 +33,23 @@ swaggerModule, err := swagger.New(swagger.Config{
 	CacheSpec: true,
 })
 if err != nil {
-	return App{}, err
+	_ = drivers.Close()
+	return nil, err
 }
 
-usersModule, err := users.New(users.Config{}, db, sessions, swaggerModule)
+usersModule, err := users.New(users.Config{}, drivers.DB, drivers.Sessions, swaggerModule)
 if err != nil {
-	return App{}, err
+	_ = drivers.Close()
+	return nil, err
 }
 
-app.Register(usersModule, swaggerModule)
+return Configure(cfg, drivers, app).
+	WithProviders(usersModule, swaggerModule).
+	WithVersion(version, commit).
+	Create()
 ```
 
-Registering Swagger last is the clearest convention. Generation is lazy and
+Listing Swagger last is the clearest convention. Generation is lazy and
 reads the shared route table, so routes added by later modules are still visible
 on the first generation.
 
@@ -68,10 +75,12 @@ Register native Hesape schemas and security schemes on the same instance:
 
 ```go
 if err := swaggerModule.Schema("User", userSchema); err != nil {
-	return App{}, err
+	_ = drivers.Close()
+	return nil, err
 }
 if err := swaggerModule.SecurityScheme("bearerAuth", swagger.HTTPBearer("JWT")); err != nil {
-	return App{}, err
+	_ = drivers.Close()
+	return nil, err
 }
 ```
 

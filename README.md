@@ -33,7 +33,9 @@ No migration or asset build follows installation.
 
 ## Quick start
 
-Create the documentation module in `bootstrap/app.go`:
+Create the documentation module in `App`, in `bootstrap/app.go`, once
+`NewAppServiceProvider` has returned. `Configure` has no way to return the error
+of `New`, so the module is built where the error can leave:
 
 ```go
 docs, err := swagger.New(swagger.Config{
@@ -45,7 +47,8 @@ docs, err := swagger.New(swagger.Config{
 	SpecPath:    "/docs/openapi.json",
 })
 if err != nil {
-	return App{}, err
+	_ = drivers.Close()
+	return nil, err
 }
 ```
 
@@ -66,11 +69,13 @@ schemas := map[string]jsonschema.Type{
 }
 for name, schema := range schemas {
 	if err := docs.Schema(name, schema); err != nil {
-		return App{}, err
+		_ = drivers.Close()
+		return nil, err
 	}
 }
 if err := docs.SecurityScheme("bearerAuth", swagger.HTTPBearer("JWT")); err != nil {
-	return App{}, err
+	_ = drivers.Close()
+	return nil, err
 }
 ```
 
@@ -82,7 +87,8 @@ if err := docs.Models(
 	swagger.ModelOf[resources.User]("User"),
 	swagger.ModelOf[resources.Page[resources.User]]("UserPage"),
 ); err != nil {
-	return App{}, err
+	_ = drivers.Close()
+	return nil, err
 }
 ```
 
@@ -100,10 +106,12 @@ databaseID, err := swagger.SchemaFromJSON([]byte(
 	`{"type":"integer","format":"int64"}`,
 ))
 if err != nil {
-	return App{}, err
+	_ = drivers.Close()
+	return nil, err
 }
 if err := docs.SchemaComponent("DatabaseID", databaseID); err != nil {
-	return App{}, err
+	_ = drivers.Close()
+	return nil, err
 }
 ```
 
@@ -125,19 +133,24 @@ m.docs.Route(route).
 	Security("bearerAuth")
 ```
 
-Register Swagger last in the application's existing module list:
+List Swagger last in the `WithProviders(...)` chain the builder is made of, after
+the modules whose routes it documents:
 
 ```go
-usersModule, err := users.New(users.Config{}, db, sessions, docs)
+usersModule, err := users.New(users.Config{}, drivers.DB, drivers.Sessions, docs)
 if err != nil {
-	return App{}, err
+	_ = drivers.Close()
+	return nil, err
 }
 
-app.Register(
-	usersModule,
-	billingModule,
-	docs,
-)
+return Configure(cfg, drivers, app).
+	WithProviders(
+		usersModule,
+		billingModule,
+		docs,
+	).
+	WithVersion(version, commit).
+	Create()
 ```
 
 Registration remains explicit. `foundation.Application` calls `Routes` for
@@ -251,7 +264,8 @@ beside the paths:
 
 ```go
 if err := docs.Models(swagger.ModelOf[resources.OrderEvent]("OrderEvent")); err != nil {
-	return App{}, err
+	_ = drivers.Close()
+	return nil, err
 }
 
 webhooks := make([]swagger.Webhook, 0, len(events.Names()))
@@ -266,7 +280,8 @@ for _, name := range events.Names() {
 	})
 }
 if err := docs.Webhooks(webhooks...); err != nil {
-	return App{}, err
+	_ = drivers.Close()
+	return nil, err
 }
 ```
 
