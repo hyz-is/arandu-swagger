@@ -91,6 +91,8 @@ func defaultPortugueseTranslations() map[string]string {
 		"Controls Accept header":       "Controla o cabeçalho Accept",
 		"Controls Content-Type header": "Controla o cabeçalho Content-Type",
 		"Example Value":                "Exemplo",
+		"Edit Value":                   "Editar valor",
+		"JSON Schema dialect:":         "Dialeto do JSON Schema:",
 		"Schema":                       "Esquema",
 		"Schemas":                      "Esquemas",
 		"Expand all":                   "Expandir tudo",

@@ -290,6 +290,14 @@ func Initializer(opts InitializerOptions) []byte {
       }
     }
 
+    function translateText(node) {
+      var current = node.nodeValue || '';
+      var key = current.trim();
+      if (!key || !translations[key]) return;
+      var next = current.match(/^\s*/)[0] + translations[key] + current.match(/\s*$/)[0];
+      if (next !== current) node.nodeValue = next;
+    }
+
     var isTranslating = false;
     var observer = new MutationObserver(function(mutations) {
       if (isTranslating) return;
@@ -303,14 +311,13 @@ func Initializer(opts InitializerOptions) []byte {
               if (added.nodeType === Node.ELEMENT_NODE) {
                 translateNode(added);
               } else if (added.nodeType === Node.TEXT_NODE) {
-                var v = added.nodeValue ? added.nodeValue.trim() : '';
-                if (v && translations[v]) {
-                  var l = added.nodeValue.match(/^\s*/)[0];
-                  var t = added.nodeValue.match(/\s*$/)[0];
-                  added.nodeValue = l + translations[v] + t;
-                }
+                translateText(added);
               }
             }
+          } else if (m.type === 'characterData') {
+            // React writes a changed label (Try it out, then Cancel) into the
+            // text node it already has, which adds no node.
+            translateText(m.target);
           }
         }
       } finally {
@@ -318,8 +325,8 @@ func Initializer(opts InitializerOptions) []byte {
       }
     });
 
-    observer.observe(container, { childList: true, subtree: true });
-    observer.observe(document.body, { childList: true, subtree: true });
+    observer.observe(container, { childList: true, subtree: true, characterData: true });
+    observer.observe(document.body, { childList: true, subtree: true, characterData: true });
     translateNode(container);
 `)
 	}
