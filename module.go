@@ -409,6 +409,7 @@ func (m *Module) serveUIAction(ctx *fhttp.Context) error {
 		LogoHref:           logoHref,
 		LogoTarget:         logoTarget,
 		ClassPrefix:        m.cfg.Theme.ClassPrefix,
+		HasCustomJS:        m.cfg.Theme.CustomJS != "",
 	}
 	data.Origin, _ = siteOrigin(m.cfg.Origin)
 	if data.Origin != "" {

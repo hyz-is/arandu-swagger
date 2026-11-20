@@ -62,6 +62,11 @@ type SwaggerViewData struct {
 	// ClassPrefix is Config.Theme.ClassPrefix: the prefix of the classes a
 	// published view draws. Read it with ClassPrefixOrDefault.
 	ClassPrefix string
+	// HasCustomJS says Config.Theme.CustomJS is set, so the module serves it at
+	// UIPath + "/theme.js". The published container writes the script tag when
+	// it is true, as the embedded page does; a view that draws its own markup
+	// writes the tag itself.
+	HasCustomJS bool
 	// Translations holds Config.Translations, which Translate consults
 	// before the package's own text.
 	Translations map[string]string

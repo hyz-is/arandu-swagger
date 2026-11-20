@@ -116,6 +116,27 @@ func renderDocsContainer(kyse__w kyse__io.Writer, kyse__data any) error {
 	if kyse__err == nil {
 		_, kyse__err = kyse__io.WriteString(kyse__w, "/swagger-initializer.js\"></script>\n")
 	}
+//line resources/views/docs/container.kyse.go:19
+	if kyse__d.HasCustomJS {
+//line storage/framework/views/docs/container.go:122
+		if kyse__err == nil {
+			_, kyse__err = kyse__io.WriteString(kyse__w, "<script src=\"")
+		}
+		if kyse__err == nil {
+			var kyse__v5 string
+//line resources/views/docs/container.kyse.go:20
+			kyse__v5, kyse__err = kyse__view.TextURL(kyse__d.UIPath)
+//line storage/framework/views/docs/container.go:130
+			if kyse__err != nil {
+				kyse__err = kyse__fmt.Errorf("%s: %w", "resources/views/docs/container.kyse.go:20", kyse__err)
+			} else {
+				_, kyse__err = kyse__io.WriteString(kyse__w, kyse__v5)
+			}
+		}
+		if kyse__err == nil {
+			_, kyse__err = kyse__io.WriteString(kyse__w, "/theme.js\"></script>\n")
+		}
+	}
 	if kyse__err == nil {
 		_, kyse__err = kyse__io.WriteString(kyse__w, "\n")
 	}

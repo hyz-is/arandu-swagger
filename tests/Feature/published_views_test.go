@@ -45,7 +45,7 @@ import (
 //
 // and write the new sums here.
 var compiledViewSources = map[string]string{
-	"container.kyse.go": "df7a4e277b1991eda99e3e9a77dd592c463b234dfba458efec3723fc1abb623e",
+	"container.kyse.go": "4acd8bf192c61cb6239d950b5a1e42639fb015885fe1e76237024790dbe1a794",
 	"header.kyse.go":    "4af6fb4fcc13bb4c5c17fc4e211489ff0dfe19e1df8363fc2a758760696af986",
 	"swagger.kyse.go":   "1d9adca6c62e30724582851c95ebf1c3915f8ad7e879496a0bacc8eea446010e",
 	"topbar.kyse.go":    "1563ceee2f5381c3fc0a62375e02d92160b9191dcabdb1f613bf26674555c65e",
@@ -363,6 +363,40 @@ func TestPublishedViewsRunNoScriptThePolicyRefuses(t *testing.T) {
 	initializer := request(router, "/docs/swagger-initializer.js").Body.String()
 	if !strings.Contains(initializer, `document.querySelectorAll(".arandu-swagger-authorize, [data-arandu-swagger-authorize]")`) {
 		t.Errorf("the initializer does not bind the header's Authorize button:\n%s", initializer)
+	}
+}
+
+// The published container writes the script tag of Theme.CustomJS, which the
+// module serves at UIPath + "/theme.js", as the embedded page does, and writes
+// nothing when no custom script is configured. Before this the view dropped
+// the script an application configured, so an application that published the
+// views got a theme script that nobody loaded.
+func TestPublishedContainerLoadsTheCustomScript(t *testing.T) {
+	t.Parallel()
+
+	with := enabledConfig()
+	with.Theme.CustomJS = "document.documentElement.dataset.themed = 'yes';"
+
+	router, _ := mount(t, with)
+	data, _ := requestViewData(t, router, "/docs")
+	if !data.Data.HasCustomJS {
+		t.Fatalf("the view data does not say a custom script is configured: %+v", data.Data)
+	}
+	container := renderView(t, "docs.container", data.Data)
+	if !strings.Contains(container, `<script src="/docs/theme.js"></script>`) {
+		t.Errorf("the container does not load the configured script:\n%s", container)
+	}
+	if got := request(router, "/docs/theme.js"); got.Code != http.StatusOK || !strings.Contains(got.Body.String(), "themed") {
+		t.Errorf("the script is not served at /docs/theme.js: %d %s", got.Code, got.Body.String())
+	}
+
+	router, _ = mount(t, enabledConfig())
+	data, _ = requestViewData(t, router, "/docs")
+	if data.Data.HasCustomJS {
+		t.Errorf("the view data says a custom script is configured when none is")
+	}
+	if container := renderView(t, "docs.container", data.Data); strings.Contains(container, "theme.js") {
+		t.Errorf("the container loads a script nobody configured:\n%s", container)
 	}
 }
 

@@ -16,3 +16,6 @@ type ContainerViewData = swagger.SwaggerViewData
 <link rel="stylesheet" href="{{ .UIPath }}/theme.css">
 <script src="{{ .UIPath }}/assets/5.32.14/swagger-ui-bundle.js"></script>
 <script src="{{ .UIPath }}/swagger-initializer.js"></script>
+@if(.HasCustomJS)
+<script src="{{ .UIPath }}/theme.js"></script>
+@endif
