@@ -1,5 +1,24 @@
 # Upgrade Guide
 
+## v0.12.0 — the published container loads the custom script
+
+`apidiff` against `v0.11.1` reports a compatible addition and nothing else:
+`SwaggerViewData.HasCustomJS`. It is true when `Theme.CustomJS` is set, the
+script the module serves at `UIPath + "/theme.js"`.
+
+The embedded page has always loaded that script; the `docs/container` view an
+application publishes did not, so a script an application configured there was
+served and never run. The container now writes
+`<script src="{{ .UIPath }}/theme.js"></script>` when `.HasCustomJS` is true and
+nothing otherwise, so an application that sets no custom script writes the page
+it wrote.
+
+An application that published `docs/container` gets the line with
+`aru vendor:publish`, which replaces the view when it has no local edit; one that
+edited it adds the `@if(.HasCustomJS)` block after the initializer script by
+hand. An application that already loads its theme script in its own view
+should remove that tag, or the script runs twice.
+
 ## Unreleased — the page cooperates with YPY
 
 `apidiff` against `v0.10.0` reports an incompatible change: the `Theme` field
