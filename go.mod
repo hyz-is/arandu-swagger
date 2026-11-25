@@ -4,8 +4,8 @@ go 1.26.10
 
 require (
 	github.com/arandu-io/framework v0.71.0
-	github.com/arandu-io/hesape v0.109.0
-	github.com/arandu-io/kyse v0.53.1
+	github.com/arandu-io/hesape v0.110.2
+	github.com/arandu-io/kyse v0.54.0
 )
 
 require (
